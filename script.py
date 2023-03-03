@@ -13,7 +13,7 @@ PATH = "./files"
 directory = os.fsencode(PATH)
 NCORES = 2
 NWORKERS = 4
-que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
+
         #cmd line module init
 cmd_line = argparse.ArgumentParser(description='Script for parsing and saving omic data')
 # add fields to parser
@@ -65,12 +65,12 @@ cmd_line.add_argument(
     help='Cell type'
 )
 
-def compute_part(df, id, num):
+def compute_part(df, id, num, name):
   part = df.partitions[num]
   part = part.loc[part.id == id]
   part = part.compute()
-  part.to_csv("BIGKEK.csv",mode = 'a')
-  return num
+  part.to_csv("./files/BIGKEK_"+name+".csv",mode = 'a')
+  print(num)
 
 def parse(
         #TODO args
@@ -79,26 +79,35 @@ def parse(
     ):
 
     df = dd.read_csv(   
-                filename,
+                "./files/"+filename,
                 sep = "\t", 
                 names = ["chr", 'begin', 'end', 'id', 'score'],
                 blocksize = '100mb'
                 )
     open("BIGKEK_"+filename+".csv", mode = 'w').close()
-    computitons = que.map(compute_part,df,id,range(df.npartitions)) 
+    comp_list = []
+    for i in range(df.npartitions):
+        comp_list.append(que.submit(compute_part, df, id, i, filename)) 
     #TODO progress bar
-    [comp.result() for comp in computitons]
+    [future.result() for future in comp_list]
+    
+
     
 
 if __name__ == '__main__':
+    que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
     args = cmd_line.parse_args()
     print(args)
     print(args.id)
+    
 
     if args.assembly == None:
         for file in os.listdir(directory):
             filename = os.fsdecode(file)
             parse(args.id,filename)
+            que.shutdown()
     else:
         #TODO list for assembly markers
         pass
+    
+    
