@@ -244,8 +244,8 @@ if __name__ == '__main__':
 
     print("Be aware of bugs")
     hyperparametrs = parse_private()
-    NCORES  = hyperparametrs["NCORES"]
-    NWORKERS = hyperparametrs["NWORKERS"]
+    NCORES  = int(hyperparametrs["NCORES"])
+    NWORKERS = int(hyperparametrs["NWORKERS"])
     IP = hyperparametrs["IP"]
     PORT    =   hyperparametrs["PORT"]
     FILE_PATH = hyperparametrs["file_path"]
