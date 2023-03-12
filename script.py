@@ -218,7 +218,7 @@ def create_features_files(
     ):
     
     # sizes - dict with cromosome as key and it's len as value
-    sizes = pd.read_csv("" + gen_assembly + '.chrom.sizes', sep='\t', header=None)
+    sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
     sizes = dict(sizes.values)
     
     Parallel(n_jobs=NCORES)(delayed(create_feature)(key, list(loc_df['id']), sizes, filename) 
