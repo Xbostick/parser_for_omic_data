@@ -12,7 +12,7 @@ import multiprocessing
 import os
 
 from joblib import Parallel, delayed, load, dump
-from sparse_vector.sparse_vector import SparseVector
+from Sparse_vector.sparse_vector import SparseVector
 
 #defines
 
