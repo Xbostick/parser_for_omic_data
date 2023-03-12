@@ -176,7 +176,7 @@ def create_sorted_bed_file(
                                 matching_experiments
                                 )) 
     #TODO progress bar
-    print(f"Your file creating. You can see progress here:\n http://{parse_private()['public']}:{parse_private()['port']}/status")
+    print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status")
     a = [process.result() for process in process_list]
     progress(a)
     
