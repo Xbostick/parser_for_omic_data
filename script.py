@@ -11,8 +11,13 @@ from dask.distributed import progress
 import multiprocessing
 import os
 
+from joblib import Parallel, delayed, load, dump
+from sparse_vector.sparse_vector import SparseVector
+
 #defines
+
 PRIVATE_PATH = "./private_omicON.txt"
+
 
 #cmd line module init
 cmd_line = argparse.ArgumentParser(description='Script for parsing and saving omic data')
@@ -21,7 +26,7 @@ cmd_line.add_argument(
     '--id',
     '-i',
     type=str,
-    default="SRX8026866",
+    default="",
     help='Experimental ID'
 )
 
@@ -29,7 +34,7 @@ cmd_line.add_argument(
     '--assembly',
     '-g',
     type=str,
-    default=None,
+    default='hg19',
     help='Genome assembly'
 )
 
@@ -69,9 +74,10 @@ cmd_line.add_argument(
     '--file',
     '-f',
     type=str,
-    default="mm9.50.bed",
+    default="",
     help='File name from documentation'
 )
+
 
 cmd_line.add_argument(
     '--verbose',
@@ -80,6 +86,7 @@ cmd_line.add_argument(
     default=1,
     help='verbose operation'
 )
+
 
 def get_matching_experimnet_part(
             df, 
@@ -95,41 +102,34 @@ def get_matching_experimnet_part(
             tmp = options[key].split(',')
             part = part.loc[part[key].isin(tmp)]
     part = part.compute()
-    return list(part.id)
+    return part
 
 
-def create_matching_expirement_list(
+def create_matching_expirement_df(
             que, 
             filename, 
             options
         ): #    Return expirement names list
     
-    
-    process_list = []
-    matching_experiments = []
-    
-    df = dd.read_csv(
-                    FILE_PATH + filename,
+
+    # match_exp_df - df for matching experiments
+    match_exp_df = pd.read_csv(
+                    PATH + filename,
+
                     sep = '\t', 
                     names = ['id', 'Genome assembly', 'Antigen class', 'Antigen', 'Cell type class', 'Cell type'],
-                    usecols=range(6),
-                    blocksize = '10mb'
+                    usecols=range(6)
                 )
     if args.verbose:
         print("Find file " +  FILE_PATH + filename)
 
-    for part in range(df.npartitions):
-       process_list.append(que.submit(
-                                get_matching_experimnet_part, 
-                                df, 
-                                part, 
-                                options
-                                ))
+    for key in options.keys():
+        if options[key]:
+            tmp = options[key].split(',')
+            match_exp_df = match_exp_df.loc[match_exp_df[key].isin(tmp)]
 
-    for process in process_list:
-        matching_experiments.extend(process.result())
-    
-    return matching_experiments
+    return match_exp_df
+
 
 def add_sorted_bed_2_file( 
             filename,
@@ -141,17 +141,22 @@ def add_sorted_bed_2_file(
 
     part = part.loc[part['id'].isin(matching_experiments)]
     part = part.compute()
-    part.to_csv(filename, mode = 'a')
+    part.to_csv(filename, index=False, header=False, mode='a')
     return num
+
 
 def create_sorted_bed_file(
         que,
         filename,
-        matching_experiments
+        match_exp_df
     ):
 
-    path_2_sorted_file = FILE_PATH + "filtred_"+filename+".csv"
+
+    path_2_sorted_file = PATH + "filtred_" + filename + ".csv"
+
     process_list = []
+
+    matching_experiments = list(match_exp_df.loc[:,'id'])
 
     df = dd.read_csv(   
                 FILE_PATH + filename,
@@ -176,6 +181,51 @@ def create_sorted_bed_file(
     progress(a)
     
 
+
+def create_feature(
+        key,
+        exps,
+        sizes,
+        filename
+    ):
+    
+    # chroms - list with chroms of the organism
+    chroms = list(sizes.keys())
+    
+    # data - dict with values of exp for each cromosome
+    data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
+    
+    # exp_df - df with selected rows from chip-atlas bed file
+    exp_df = pd.read_csv(PATH + "filtred_" + filename + ".csv", header=None, sep=',')
+    exp_df = exp_df[exp_df[3].isin(exps)]
+    exp_df = exp_df[exp_df[0].isin(chroms)]
+    
+    for line in exp_df.values:
+        chrm, begin, end, ee, value = line
+        data[chrm][begin: end] = np.maximum(data[chrm][begin: end], value)
+    
+    # data_sparse - convert data to sparse
+    data_sparse = {chrm:SparseVector(data[chrm]) for chrm in chroms}
+    
+    os.makedirs('data', exist_ok=True)
+    dump(data_sparse, "data/" + "_".join(key) + ".pkl", 3)
+
+
+def create_features_files(
+	match_exp_df,
+	gen_assembly,
+	filename
+    ):
+    
+    # sizes - dict with cromosome as key and it's len as value
+    sizes = pd.read_csv("" + gen_assembly + '.chrom.sizes', sep='\t', header=None)
+    sizes = dict(sizes.values)
+    
+    Parallel(n_jobs=NCORES)(delayed(create_feature)(key, list(loc_df['id']), sizes, filename) 
+                   for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
+    
+        
+
 def parse_private():
     d = {}
     with open(PRIVATE_PATH) as f:
@@ -186,6 +236,7 @@ def parse_private():
             print(key)
             d[str(key)] = val
     return(d)   
+
 
 if __name__ == '__main__':
     
@@ -218,13 +269,17 @@ if __name__ == '__main__':
         print("Succes parse arguments!")
         print(options)
 
-    matching_experiments = create_matching_expirement_list(que, "part.txt", options)
+    match_exp_df = create_matching_expirement_df(que, "experimentList.tab", options)
     if args.verbose:
         print(f"Was finded {len(matching_experiments)} results:\n " + str(matching_experiments))
+    
+    create_sorted_bed_file(que, args.file, match_exp_df)
 
-    create_sorted_bed_file(que, hyperparametrs[args.file], matching_experiments)
 
     que.shutdown()
     
+    print('Feature creation started')
+    create_features_files(match_exp_df, args.assembly, args.file)
     
+    os.remove(PATH + "filtred_" + args.file + ".csv")
     
