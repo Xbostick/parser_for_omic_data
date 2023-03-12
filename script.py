@@ -15,11 +15,9 @@ from joblib import Parallel, delayed, load, dump
 from sparse_vector.sparse_vector import SparseVector
 
 #defines
-PATH = "./"
-directory = os.fsencode(PATH)
-NCORES = 4
-NWORKERS = 8
-DB = 0
+
+PRIVATE_PATH = "./private_omicON.txt"
+
 
 #cmd line module init
 cmd_line = argparse.ArgumentParser(description='Script for parsing and saving omic data')
@@ -81,6 +79,15 @@ cmd_line.add_argument(
 )
 
 
+cmd_line.add_argument(
+    '--verbose',
+    '-v',
+    type=int,
+    default=1,
+    help='verbose operation'
+)
+
+
 def get_matching_experimnet_part(
             df, 
             num,
@@ -94,7 +101,6 @@ def get_matching_experimnet_part(
         if options[key]:
             tmp = options[key].split(',')
             part = part.loc[part[key].isin(tmp)]
-
     part = part.compute()
     return part
 
@@ -105,20 +111,17 @@ def create_matching_expirement_df(
             options
         ): #    Return expirement names list
     
+
     # match_exp_df - df for matching experiments
     match_exp_df = pd.read_csv(
                     PATH + filename,
+
                     sep = '\t', 
                     names = ['id', 'Genome assembly', 'Antigen class', 'Antigen', 'Cell type class', 'Cell type'],
                     usecols=range(6)
                 )
-    #TODO Можно сделать мапом. Будет красивше
-    # process_list.map(             
-    #         get_matching_experimnet_part, 
-    #         range(df.npartitions), 
-    #         [options] * df.npartitions
-    #     )
-    print("Find file " +  PATH + filename)
+    if args.verbose:
+        print("Find file " +  FILE_PATH + filename)
 
     for key in options.keys():
         if options[key]:
@@ -148,13 +151,15 @@ def create_sorted_bed_file(
         match_exp_df
     ):
 
+
     path_2_sorted_file = PATH + "filtred_" + filename + ".csv"
+
     process_list = []
 
     matching_experiments = list(match_exp_df.loc[:,'id'])
 
     df = dd.read_csv(   
-                PATH + filename,
+                FILE_PATH + filename,
                 sep = "\t", 
                 names = ["chr", 'begin', 'end', 'id', 'score'],
                 blocksize = '100mb'
@@ -171,10 +176,11 @@ def create_sorted_bed_file(
                                 matching_experiments
                                 )) 
     #TODO progress bar
-    print("Your file creating. You can see progress here:\n http://localhost:8787/status")
+    print(f"Your file creating. You can see progress here:\n http://{parse_private()['public']}:{parse_private()['port']}/status")
     a = [process.result() for process in process_list]
     progress(a)
     
+
 
 def create_feature(
         key,
@@ -220,10 +226,33 @@ def create_features_files(
     
         
 
+def parse_private():
+    d = {}
+    with open(PRIVATE_PATH) as f:
+        for line in f:
+            if str(line) == '___Doc_list___\n':
+                continue
+            (key, val) = line.split()
+            print(key)
+            d[str(key)] = val
+    return(d)   
+
+
 if __name__ == '__main__':
     
-    que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
     args = cmd_line.parse_args()
+
+    hyperparametrs = parse_private()
+    NCORES  = hyperparametrs["NCORES"]
+    NWORKERS = hyperparametrs["NWORKERS"]
+    IP = hyperparametrs["IP"]
+    PORT    =   hyperparametrs["PORT"]
+    FILE_PATH = hyperparametrs["file_path"]
+
+    if  args.verbose:
+        print(hyperparametrs)
+
+    que = Client(n_workers=int(NCORES), threads_per_worker=int(NWORKERS))
 
     options = {
         #Parse arguments from cmd line to special dict
@@ -234,12 +263,17 @@ if __name__ == '__main__':
         "Cell type class"   :   args.cell_type,
         "Cell type'"        :   args.cell
     }
-
-    print("Succes parse arguments!")
+    
+    if args.verbose: 
+        print("Succes parse arguments!")
+        print(options)
 
     match_exp_df = create_matching_expirement_df(que, "experimentList.tab", options)
+    if args.verbose:
+        print(f"Was finded {len(matching_experiments)} results:\n " + str(matching_experiments))
     
     create_sorted_bed_file(que, args.file, match_exp_df)
+
 
     que.shutdown()
     
