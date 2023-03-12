@@ -253,7 +253,7 @@ if __name__ == '__main__':
     if  args.verbose:
         print(hyperparametrs)
 
-    que = Client(n_workers=int(NCORES), threads_per_worker=int(NWORKERS))
+    que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
 
     options = {
         #Parse arguments from cmd line to special dict
