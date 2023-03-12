@@ -191,6 +191,7 @@ if __name__ == '__main__':
     
     args = cmd_line.parse_args()
 
+    print("Be aware of bugs")
     hyperparametrs = parse_private()
     NCORES  = hyperparametrs["NCORES"]
     NWORKERS = hyperparametrs["NWORKERS"]
