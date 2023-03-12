@@ -12,15 +12,7 @@ import multiprocessing
 import os
 
 #defines
-FILE_PATH = "/mnt/storage/avoitetskii/chip_atlas/"
-PRIVATE_PATH = "~/private_omicON.txt"
-DOC_LIST = {
-    "hg38"  :   "allPeaks_light.hg38.05.bed",
-    "mm10"  :   "allPeaks_light.mm10.05.bed"
-    }
-directory = os.fsencode(FILE_PATH)
-NCORES = 2
-NWORKERS = 4
+PRIVATE_PATH = "./private_omicON.txt"
 
 #cmd line module init
 cmd_line = argparse.ArgumentParser(description='Script for parsing and saving omic data')
@@ -188,14 +180,28 @@ def parse_private():
     d = {}
     with open(PRIVATE_PATH) as f:
         for line in f:
+            if str(line) == '___Doc_list___\n':
+                continue
             (key, val) = line.split()
+            print(key)
             d[str(key)] = val
     return(d)   
 
 if __name__ == '__main__':
     
-    que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
     args = cmd_line.parse_args()
+
+    hyperparametrs = parse_private()
+    NCORES  = hyperparametrs["NCORES"]
+    NWORKERS = hyperparametrs["NWORKERS"]
+    IP = hyperparametrs["IP"]
+    PORT    =   hyperparametrs["PORT"]
+    FILE_PATH = hyperparametrs["file_path"]
+
+    if  args.verbose:
+        print(hyperparametrs)
+
+    que = Client(n_workers=int(NCORES), threads_per_worker=int(NWORKERS))
 
     options = {
         #Parse arguments from cmd line to special dict
@@ -206,14 +212,16 @@ if __name__ == '__main__':
         "Cell type class"   :   args.cell_type,
         "Cell type'"        :   args.cell
     }
-
-    print("Succes parse arguments!")
+    
+    if args.verbose: 
+        print("Succes parse arguments!")
+        print(options)
 
     matching_experiments = create_matching_expirement_list(que, "part.txt", options)
     if args.verbose:
         print(f"Was finded {len(matching_experiments)} results:\n " + str(matching_experiments))
 
-    create_sorted_bed_file(que, args.file, matching_experiments)
+    create_sorted_bed_file(que, hyperparametrs[args.file], matching_experiments)
 
     que.shutdown()
     

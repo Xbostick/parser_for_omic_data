@@ -1,0 +1,8 @@
+file_path	/mnt/storage/avoitetskii/chip_atlas/
+IP	89.175.46.92
+PORT	1506
+NCORES	2
+NWORKERS	4
+___Doc_list___
+hg38	allPeaks_light.hg38.05.bed
+mm10	allPeaks_light.mm10.05.bed  
