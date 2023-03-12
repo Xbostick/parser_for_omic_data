@@ -114,7 +114,7 @@ def create_matching_expirement_df(
 
     # match_exp_df - df for matching experiments
     match_exp_df = pd.read_csv(
-                    PATH + filename,
+                    FILE_PATH + filename,
 
                     sep = '\t', 
                     names = ['id', 'Genome assembly', 'Antigen class', 'Antigen', 'Cell type class', 'Cell type'],
@@ -152,7 +152,7 @@ def create_sorted_bed_file(
     ):
 
 
-    path_2_sorted_file = PATH + "filtred_" + filename + ".csv"
+    path_2_sorted_file = FILE_PATH + "filtred_" + filename + ".csv"
 
     process_list = []
 
@@ -196,7 +196,7 @@ def create_feature(
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
     
     # exp_df - df with selected rows from chip-atlas bed file
-    exp_df = pd.read_csv(PATH + "filtred_" + filename + ".csv", header=None, sep=',')
+    exp_df = pd.read_csv(FILE_PATH + "filtred_" + filename + ".csv", header=None, sep=',')
     exp_df = exp_df[exp_df[3].isin(exps)]
     exp_df = exp_df[exp_df[0].isin(chroms)]
     
@@ -281,5 +281,5 @@ if __name__ == '__main__':
     print('Feature creation started')
     create_features_files(match_exp_df, args.assembly, args.file)
     
-    os.remove(PATH + "filtred_" + args.file + ".csv")
+    os.remove(FILE_PATH + "filtred_" + args.file + ".csv")
     
