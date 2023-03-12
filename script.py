@@ -12,13 +12,17 @@ import multiprocessing
 import os
 
 #defines
-PATH = "M:/Fast_Work/files/"
-directory = os.fsencode(PATH)
+FILE_PATH = "/mnt/storage/avoitetskii/chip_atlas/"
+PRIVATE_PATH = "~/private_omicON.txt"
+DOC_LIST = {
+    "hg38"  :   "allPeaks_light.hg38.05.bed",
+    "mm10"  :   "allPeaks_light.mm10.05.bed"
+    }
+directory = os.fsencode(FILE_PATH)
 NCORES = 2
 NWORKERS = 4
-DB = 1
 
-        #cmd line module init
+#cmd line module init
 cmd_line = argparse.ArgumentParser(description='Script for parsing and saving omic data')
 # add fields to parser
 cmd_line.add_argument(
@@ -77,6 +81,14 @@ cmd_line.add_argument(
     help='File name from documentation'
 )
 
+cmd_line.add_argument(
+    '--verbose',
+    '-v',
+    type=int,
+    default=1,
+    help='verbose operation'
+)
+
 def get_matching_experimnet_part(
             df, 
             num,
@@ -90,26 +102,6 @@ def get_matching_experimnet_part(
         if options[key]:
             tmp = options[key].split(',')
             part = part.loc[part[key].isin(tmp)]
-
-    # if options.id != '':
-    #     tmp = options.id.split(',')
-    #     part = part.loc[part['id'].isin(tmp)]
-    # if options[1] != '':
-    #     tmp = options[1].split(',')
-    #     part = part.loc[part['Genome assembly'].isin(tmp)]
-    # if options[2] != '':
-    #     tmp = options[2].split(',')
-    #     part = part.loc[part['Antigen class'].isin(tmp)]
-    # if options[3] != '':
-    #     tmp = options[3].split(',')
-    #     part = part.loc[part['Antigen'].isin(tmp)]
-    # if options[4] != '':
-    #     tmp = options[4].split(',')
-    #     part = part.loc[part['Cell type class'].isin(tmp)]
-    # if options[5] != '':
-    #     tmp = options[5].split(',')
-    #     part = part.loc[part['Cell type'].isin(tmp)]
-
     part = part.compute()
     return list(part.id)
 
@@ -125,19 +117,14 @@ def create_matching_expirement_list(
     matching_experiments = []
     
     df = dd.read_csv(
-                    PATH + filename,
+                    FILE_PATH + filename,
                     sep = '\t', 
                     names = ['id', 'Genome assembly', 'Antigen class', 'Antigen', 'Cell type class', 'Cell type'],
                     usecols=range(6),
                     blocksize = '10mb'
                 )
-    #TODO Можно сделать мапом. Будет красивше
-    # process_list.map(             
-    #         get_matching_experimnet_part, 
-    #         range(df.npartitions), 
-    #         [options] * df.npartitions
-    #     )
-    print("Find file " +  PATH + filename)
+    if args.verbose:
+        print("Find file " +  FILE_PATH + filename)
 
     for part in range(df.npartitions):
        process_list.append(que.submit(
@@ -171,11 +158,11 @@ def create_sorted_bed_file(
         matching_experiments
     ):
 
-    path_2_sorted_file = PATH + "filtred_"+filename+".csv"
+    path_2_sorted_file = FILE_PATH + "filtred_"+filename+".csv"
     process_list = []
 
     df = dd.read_csv(   
-                PATH + filename,
+                FILE_PATH + filename,
                 sep = "\t", 
                 names = ["chr", 'begin', 'end', 'id', 'score'],
                 blocksize = '100mb'
@@ -192,13 +179,18 @@ def create_sorted_bed_file(
                                 matching_experiments
                                 )) 
     #TODO progress bar
-    print("Your file creating. You can see progress here:\n http://localhost:8787/status")
+    print(f"Your file creating. You can see progress here:\n http://{parse_private()['public']}:{parse_private()['port']}/status")
     a = [process.result() for process in process_list]
     progress(a)
     
 
-
-    
+def parse_private():
+    d = {}
+    with open(PRIVATE_PATH) as f:
+        for line in f:
+            (key, val) = line.split()
+            d[str(key)] = val
+    return(d)   
 
 if __name__ == '__main__':
     
@@ -218,7 +210,7 @@ if __name__ == '__main__':
     print("Succes parse arguments!")
 
     matching_experiments = create_matching_expirement_list(que, "part.txt", options)
-    if DB:
+    if args.verbose:
         print(f"Was finded {len(matching_experiments)} results:\n " + str(matching_experiments))
 
     create_sorted_bed_file(que, args.file, matching_experiments)
