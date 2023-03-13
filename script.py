@@ -176,7 +176,7 @@ def create_sorted_bed_file(
                                 matching_experiments
                                 )) 
     #TODO progress bar
-    print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status")
+    print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status\nIt is not working now. Whatever ¯\_(ツ)_/¯")
     a = [process.result() for process in process_list]
     progress(a)
     
@@ -264,6 +264,8 @@ if __name__ == '__main__':
         "Cell type class"   :   args.cell_type,
         "Cell type'"        :   args.cell
     }
+    for key in options.keys():
+        options[key] = options[key].replace('_', ' ')
     
     if args.verbose: 
         print("Succes parse arguments!")
