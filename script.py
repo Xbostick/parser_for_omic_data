@@ -16,7 +16,7 @@ from Sparse_vector.sparse_vector import SparseVector
 
 #defines
 
-PRIVATE_PATH = "home/avoitetskii/private_omicON.txt"
+PRIVATE_PATH = "~/private_omicON.txt"
 
 class bcolors:
     HEADER = '\033[95m'
