@@ -228,14 +228,15 @@ def create_feature(
 def create_features_files(
 	match_exp_df,
 	gen_assembly,
-	filename
+	filename, 
+    path
     ):
     
     # sizes - dict with cromosome as key and it's len as value
     sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
     sizes = dict(sizes.values)
     
-    Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, filename) 
+    Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, filename, path) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
     
         
