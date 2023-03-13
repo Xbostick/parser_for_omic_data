@@ -36,7 +36,7 @@ cmd_line.add_argument(
     '--id',
     '-i',
     type=str,
-    default="",
+    default=None,
     help='Experimental ID'
 )
 
