@@ -277,8 +277,8 @@ if __name__ == '__main__':
         "Cell type'"        :   args.cell
     }
     for key in options.keys():
-        print(options[key])
-        options[key] = options[key].replace('_', ' ')
+        if options[key]:
+            options[key] = options[key].replace('_', ' ')
     
     if args.verbose: 
         print("Succes parse arguments!")
