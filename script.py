@@ -85,7 +85,7 @@ cmd_line.add_argument(
     '-f',
     type=str,
     default="hg38",
-    help='File name from documentation'
+    help='Path to export files'
 )
 
 
