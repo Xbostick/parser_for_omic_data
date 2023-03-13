@@ -18,6 +18,16 @@ from Sparse_vector.sparse_vector import SparseVector
 
 PRIVATE_PATH = "private_omicON.txt"
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 #cmd line module init
 cmd_line = argparse.ArgumentParser(description='Script for parsing and saving omic data')
@@ -233,7 +243,6 @@ def parse_private():
             if str(line) == '___Doc_list___\n':
                 continue
             (key, val) = line.split()
-            print(key)
             d[str(key)] = val
     return(d)   
 
@@ -242,7 +251,8 @@ if __name__ == '__main__':
     
     args = cmd_line.parse_args()
 
-    print("Be aware of bugs")
+    print(f"{bcolors.WARNING}Be aware of bugs{bcolors.ENDC}")
+    
     hyperparametrs = parse_private()
     NCORES  = int(hyperparametrs["NCORES"])
     NWORKERS = int(hyperparametrs["NWORKERS"])
@@ -250,8 +260,9 @@ if __name__ == '__main__':
     PORT    =   hyperparametrs["PORT"]
     FILE_PATH = hyperparametrs["file_path"]
 
-    if  args.verbose:
-        print(hyperparametrs)
+    if args.verbose:
+        for key,value in hyperparametrs.items():
+            print(key, ':', value)
 
     que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
 
