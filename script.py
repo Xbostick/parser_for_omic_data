@@ -44,7 +44,7 @@ cmd_line.add_argument(
     '--assembly',
     '-g',
     type=str,
-    default='hg38',
+    default=None,
     help='Genome assembly'
 )
 
@@ -84,7 +84,7 @@ cmd_line.add_argument(
     '--file',
     '-f',
     type=str,
-    default="",
+    default="hg38",
     help='File name from documentation'
 )
 
