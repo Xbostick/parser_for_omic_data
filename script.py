@@ -12,7 +12,7 @@ import multiprocessing
 import os
 
 from joblib import Parallel, delayed, load, dump
-from sparse_vector.sparse_vector import SparseVector
+from Sparse_vector.sparse_vector import SparseVector
 
 #defines
 
@@ -114,7 +114,7 @@ def create_matching_expirement_df(
 
     # match_exp_df - df for matching experiments
     match_exp_df = pd.read_csv(
-                    PATH + filename,
+                    FILE_PATH + filename,
 
                     sep = '\t', 
                     names = ['id', 'Genome assembly', 'Antigen class', 'Antigen', 'Cell type class', 'Cell type'],
@@ -152,7 +152,7 @@ def create_sorted_bed_file(
     ):
 
 
-    path_2_sorted_file = PATH + "filtred_" + filename + ".csv"
+    path_2_sorted_file = FILE_PATH + "filtred_" + filename + ".csv"
 
     process_list = []
 
@@ -176,7 +176,7 @@ def create_sorted_bed_file(
                                 matching_experiments
                                 )) 
     #TODO progress bar
-    print(f"Your file creating. You can see progress here:\n http://{parse_private()['public']}:{parse_private()['port']}/status")
+    print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status")
     a = [process.result() for process in process_list]
     progress(a)
     
@@ -196,7 +196,7 @@ def create_feature(
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
     
     # exp_df - df with selected rows from chip-atlas bed file
-    exp_df = pd.read_csv(PATH + "filtred_" + filename + ".csv", header=None, sep=',')
+    exp_df = pd.read_csv(FILE_PATH + "filtred_" + filename + ".csv", header=None, sep=',')
     exp_df = exp_df[exp_df[3].isin(exps)]
     exp_df = exp_df[exp_df[0].isin(chroms)]
     
@@ -218,10 +218,10 @@ def create_features_files(
     ):
     
     # sizes - dict with cromosome as key and it's len as value
-    sizes = pd.read_csv("" + gen_assembly + '.chrom.sizes', sep='\t', header=None)
+    sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
     sizes = dict(sizes.values)
     
-    Parallel(n_jobs=NCORES)(delayed(create_feature)(key, list(loc_df['id']), sizes, filename) 
+    Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, filename) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
     
         
@@ -244,8 +244,8 @@ if __name__ == '__main__':
 
     print("Be aware of bugs")
     hyperparametrs = parse_private()
-    NCORES  = hyperparametrs["NCORES"]
-    NWORKERS = hyperparametrs["NWORKERS"]
+    NCORES  = int(hyperparametrs["NCORES"])
+    NWORKERS = int(hyperparametrs["NWORKERS"])
     IP = hyperparametrs["IP"]
     PORT    =   hyperparametrs["PORT"]
     FILE_PATH = hyperparametrs["file_path"]
@@ -253,7 +253,7 @@ if __name__ == '__main__':
     if  args.verbose:
         print(hyperparametrs)
 
-    que = Client(n_workers=int(NCORES), threads_per_worker=int(NWORKERS))
+    que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
 
     options = {
         #Parse arguments from cmd line to special dict
@@ -271,7 +271,7 @@ if __name__ == '__main__':
 
     match_exp_df = create_matching_expirement_df(que, "experimentList.tab", options)
     if args.verbose:
-        print(f"Was finded {len(matching_experiments)} results:\n " + str(matching_experiments))
+        print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df))
     
     create_sorted_bed_file(que, args.file, match_exp_df)
 
@@ -281,5 +281,5 @@ if __name__ == '__main__':
     print('Feature creation started')
     create_features_files(match_exp_df, args.assembly, args.file)
     
-    os.remove(PATH + "filtred_" + args.file + ".csv")
+    os.remove(FILE_PATH + "filtred_" + args.file + ".csv")
     
