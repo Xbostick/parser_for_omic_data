@@ -44,7 +44,7 @@ cmd_line.add_argument(
     '--assembly',
     '-g',
     type=str,
-    default=None,
+    default="hg38",
     help='Genome assembly'
 )
 
