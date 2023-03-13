@@ -188,7 +188,7 @@ def create_sorted_bed_file(
     #TODO progress bar
     print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status\n")
 
-    print(f"{bcolors.OKCYAN}It is not working now. Whatever ¯\_(ツ)_/¯{bcolors.ENDC}")
+    print(f"{bcolors.OKCYAN}It is not working now. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
     a = [process.result() for process in process_list]
     progress(a)
     
@@ -293,13 +293,13 @@ if __name__ == '__main__':
     if args.verbose:
         print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
     
-    create_sorted_bed_file(que, hyperparametrs[args.file], match_exp_df)
+    create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
 
 
     que.shutdown()
     
     print('Feature creation started')
-    create_features_files(match_exp_df, args.assembly, hyperparametrs[args.file])
+    create_features_files(match_exp_df, args.assembly, hyperparametrs[args.assembly])
     print('Feature creation fineshed')
-    os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.file] + ".csv")
+    os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
     
