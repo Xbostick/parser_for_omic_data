@@ -16,7 +16,7 @@ from Sparse_vector.sparse_vector import SparseVector
 
 #defines
 
-PRIVATE_PATH = "~/private_omicON.txt"
+PRIVATE_PATH = "private_omicON.txt"
 
 
 #cmd line module init
