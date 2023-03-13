@@ -44,7 +44,7 @@ cmd_line.add_argument(
     '--assembly',
     '-g',
     type=str,
-    default='hg19',
+    default='hg38',
     help='Genome assembly'
 )
 
@@ -186,7 +186,9 @@ def create_sorted_bed_file(
                                 matching_experiments
                                 )) 
     #TODO progress bar
-    print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status\nIt is not working now. Whatever ¯\_(ツ)_/¯")
+    print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status\n")
+
+    print(f"{bcolors.OKCYAN}It is not working now. Whatever ¯\_(ツ)_/¯{bcolors.ENDC}")
     a = [process.result() for process in process_list]
     progress(a)
     
@@ -241,9 +243,14 @@ def parse_private():
     with open(PRIVATE_PATH) as f:
         for line in f:
             if str(line) == '___Doc_list___\n':
+                if args.verbose:
+                    print('___Doc_list___')
                 continue
             (key, val) = line.split()
             d[str(key)] = val
+
+            if args.verbose:
+                print(key, ':', value)
     return(d)   
 
 
@@ -251,7 +258,7 @@ if __name__ == '__main__':
     
     args = cmd_line.parse_args()
 
-    print(f"{bcolors.OKGREEN}Be aware of bugs{bcolors.ENDC}")
+    print(f"{bcolors.OKCYAN}Be aware of bugs{bcolors.ENDC}")
 
     hyperparametrs = parse_private()
     
@@ -260,10 +267,7 @@ if __name__ == '__main__':
     IP = hyperparametrs["IP"]
     PORT    =   hyperparametrs["PORT"]
     FILE_PATH = hyperparametrs["file_path"]
-
-    if args.verbose:
-        for key,value in hyperparametrs.items():
-            print(key, ':', value)
+     
 
     que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
 
@@ -282,11 +286,12 @@ if __name__ == '__main__':
     
     if args.verbose: 
         print("Succes parse arguments!")
-        print(options)
+        for key,value in options.items():
+            print(key, ':', value)
 
     match_exp_df = create_matching_expirement_df(que, "experimentList.tab", options)
     if args.verbose:
-        print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df))
+        print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
     
     create_sorted_bed_file(que, args.file, match_exp_df)
 
@@ -295,6 +300,6 @@ if __name__ == '__main__':
     
     print('Feature creation started')
     create_features_files(match_exp_df, args.assembly, args.file)
-    
+    print('Feature creation fineshed')
     os.remove(FILE_PATH + "filtred_" + args.file + ".csv")
     
