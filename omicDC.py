@@ -81,10 +81,10 @@ cmd_line.add_argument(
 )
 
 cmd_line.add_argument(
-    '--file',
-    '-f',
+    '--path',
+    '-p',
     type=str,
-    default="hg38",
+    default="~",
     help='Path to export files'
 )
 
@@ -199,7 +199,8 @@ def create_feature(
         key,
         exps,
         sizes,
-        filename
+        filename,
+        path
     ):
     
     # chroms - list with chroms of the organism
@@ -220,8 +221,8 @@ def create_feature(
     # data_sparse - convert data to sparse
     data_sparse = {chrm:SparseVector(data[chrm]) for chrm in chroms}
     
-    os.makedirs('data', exist_ok=True)
-    dump(data_sparse, "data/" + "_".join(key) + ".pkl", 3)
+    os.makedirs(path+"/omicDC_results", exist_ok=True)
+    dump(data_sparse, path+"/omicDC_results/" + "_".join(key) + ".pkl", 3)
 
 
 def create_features_files(
@@ -301,7 +302,7 @@ if __name__ == '__main__':
     que.shutdown()
     if args.verbose: 
         print('Feature creation started')
-    create_features_files(match_exp_df, args.assembly, hyperparametrs[args.assembly])
+    create_features_files(match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path)
     print('Feature creation fineshed')
     os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
     
