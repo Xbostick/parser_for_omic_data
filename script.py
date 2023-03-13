@@ -188,7 +188,7 @@ def create_sorted_bed_file(
     #TODO progress bar
     print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status\n")
 
-    print(f"{bcolors.OKCYAN}It is not working now. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
+    print(f"{bcolors.OKCYAN}Progress bar is not working yet. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
     a = [process.result() for process in process_list]
     progress(a)
     
