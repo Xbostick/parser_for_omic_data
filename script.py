@@ -251,9 +251,10 @@ if __name__ == '__main__':
     
     args = cmd_line.parse_args()
 
-    print(f"{bcolors.WARNING}Be aware of bugs{bcolors.ENDC}")
-    
+    print(f"{bcolors.OKGREEN}Be aware of bugs{bcolors.ENDC}")
+
     hyperparametrs = parse_private()
+    
     NCORES  = int(hyperparametrs["NCORES"])
     NWORKERS = int(hyperparametrs["NWORKERS"])
     IP = hyperparametrs["IP"]
@@ -276,6 +277,7 @@ if __name__ == '__main__':
         "Cell type'"        :   args.cell
     }
     for key in options.keys():
+        print(options[key])
         options[key] = options[key].replace('_', ' ')
     
     if args.verbose: 
