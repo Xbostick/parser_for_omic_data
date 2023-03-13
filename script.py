@@ -250,7 +250,7 @@ def parse_private():
             d[str(key)] = val
 
             if args.verbose:
-                print(key, ':', value)
+                print(key, ':', val)
     return(d)   
 
 
