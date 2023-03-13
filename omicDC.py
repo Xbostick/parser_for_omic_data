@@ -191,7 +191,7 @@ def create_sorted_bed_file(
 
         print(f"{bcolors.OKCYAN}Progress bar is not working yet. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
     a = [process.result() for process in process_list]
-    progress(a)
+    progress(a, notebook = False)
     
 
 
