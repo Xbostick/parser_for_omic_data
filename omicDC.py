@@ -220,8 +220,8 @@ def create_feature(
     print(key)
     print(key[0].replace(' ', '_'))
     print(type(key[0]))
-    key[0] = key[0].replace(' ', '_')
-    key[1] = key[1].replace(' ', '_')
+    key0 = key[0].replace(' ', '_')
+    key1 = key[1].replace(' ', '_')
 
     # chroms - list with chroms of the organism
     chroms = list(sizes.keys())
@@ -242,7 +242,7 @@ def create_feature(
     data_sparse = {chrm:SparseVector(data[chrm]) for chrm in chroms}
     
     os.makedirs(os.path.expanduser(path) +"/omicDC_results", exist_ok=True)
-    dump(data_sparse, path+"/omicDC_results/" + key[1] + "_"+key[0] + ".pkl", 3)
+    dump(data_sparse, path+"/omicDC_results/" + key0 + "_"+key1 + ".pkl", 3)
 
 
 def create_features_files(
