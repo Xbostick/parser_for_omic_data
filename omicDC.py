@@ -291,7 +291,7 @@ if __name__ == '__main__':
      
     try:
         que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
-    except:
+    else:
         print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit, kekw!{bcolors.ENDC}") 
 
     options = {
