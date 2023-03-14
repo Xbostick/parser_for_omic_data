@@ -170,10 +170,10 @@ def create_sorted_bed_file(
         match_exp_df
     ):
 
-    if im_not_alone:
-        print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit!{bcolors.ENDC}") 
-        while im_not_alone:
-            pass
+    # if im_not_alone:
+    #     print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit!{bcolors.ENDC}") 
+    #     while im_not_alone:
+    #         pass
 
     path_2_sorted_file = FILE_PATH + "filtred_" + filename + ".csv"
 
@@ -293,10 +293,8 @@ if __name__ == '__main__':
         warnings.simplefilter("always")
         que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
         for warn in caught_warnings:
-            print("-----")
-            print(f"warn: {warn.message}")
-            print(warn.category)
-            print(str(warn)) 
+            print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit!{bcolors.ENDC}") 
+            exit()
 
     options = {
         #Parse arguments from cmd line to special dict
