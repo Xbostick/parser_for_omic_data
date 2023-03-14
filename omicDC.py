@@ -237,7 +237,7 @@ def create_feature(
     data_sparse = {chrm:SparseVector(data[chrm]) for chrm in chroms}
     
     os.makedirs(os.path.expanduser(path) +"/omicDC_results", exist_ok=True)
-    dump(data_sparse, os.path.expanduser(path)+"/omicDC_results/" + key[0].replace(' ', '_') + "_"+key1 + ".pkl", 3)
+    dump(data_sparse, os.path.expanduser(path)+"/omicDC_results/" + key[0].replace(' ', '_') + "_"+key[1] + ".pkl", 3)
 
 
 def create_features_files(
