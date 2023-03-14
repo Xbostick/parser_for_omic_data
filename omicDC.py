@@ -217,12 +217,7 @@ def create_feature(
         filename,
         path
     ):
-    print(key)
-    print(key[0].replace(' ', '_'))
-    print(type(key[0]))
-    key0 = key[0].replace(' ', '_')
-    key1 = key[1].replace(' ', '_')
-
+    
     # chroms - list with chroms of the organism
     chroms = list(sizes.keys())
     
