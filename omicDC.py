@@ -276,7 +276,7 @@ def parse_private():
 
 
 if __name__ == '__main__':
-    warnings.filterwarnings("error")
+    
     args = cmd_line.parse_args()
 
     print(f"{bcolors.OKCYAN}Be aware of bugs{bcolors.ENDC}")
