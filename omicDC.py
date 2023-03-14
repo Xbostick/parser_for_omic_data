@@ -217,7 +217,9 @@ def create_feature(
         filename,
         path
     ):
-    
+    print(key)
+    print(key[0])
+    print(type(key[0]))
     key[0] = str(key[0]).replace(' ', '_')
     key[1] = str(key[1]).replace(' ', '_')
 
