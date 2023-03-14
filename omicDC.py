@@ -289,10 +289,14 @@ if __name__ == '__main__':
     PORT    =   hyperparametrs["PORT"]
     FILE_PATH = hyperparametrs["file_path"]
      
-    try:
+    with warnings.catch_warnings(record=True) as caught_warnings:
+        warnings.simplefilter("always")
         que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
-    except:
-        print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit, kekw!{bcolors.ENDC}") 
+        for warn in caught_warnings:
+            print("-----")
+            print(f"warn: {warn.message}")
+            print(warn.category)
+            print(str(warn)) 
 
     options = {
         #Parse arguments from cmd line to special dict
