@@ -205,8 +205,8 @@ def create_feature(
         path
     ):
     
-    #key[0] = key[0].replace(' ', '_')
-    #key[1] = key[1].replace(' ', '_')
+    key[0] = key[0].replace(' ', '_')
+    key[1] = key[1].replace(' ', '_')
 
     # chroms - list with chroms of the organism
     chroms = list(sizes.keys())
