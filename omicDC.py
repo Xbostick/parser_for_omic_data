@@ -154,6 +154,14 @@ def add_sorted_bed_2_file(
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
 
+def im_not_alone(filename):
+    directory = os.listdir('./')
+    is_multiuser = 0
+    for f in directory:
+        if f.find("filtred_") != -1:
+            is_multiuser = 1
+    return is_multiuser
+
 
 def create_sorted_bed_file(
         que,
@@ -161,6 +169,8 @@ def create_sorted_bed_file(
         match_exp_df
     ):
 
+    if im_not_alone: 
+        exit()
 
     path_2_sorted_file = FILE_PATH + "filtred_" + filename + ".csv"
 
@@ -285,6 +295,7 @@ if __name__ == '__main__':
         "Cell type class"   :   args.cell_type,
         "Cell type'"        :   args.cell
     }
+
     for key in options.keys():
         if options[key]:
             options[key] = options[key].replace('_', ' ')
