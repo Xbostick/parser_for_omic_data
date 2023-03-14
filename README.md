@@ -84,7 +84,7 @@ default: 1
 
 Значения необязательных ключей нужно брать из таблицы экспериментов chip-atlas experimentList.tab:
 
-` `[https://github.com/inutano/chip-atlas/wiki#downloads_doc]() 
+` `[https://github.com/inutano/chip-atlas/wiki]() 
 
 Пример, если необходимо указать несколько дополнительных ключей. Эти записи вернут одинаковый результат:
 
