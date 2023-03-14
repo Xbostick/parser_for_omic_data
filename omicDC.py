@@ -293,7 +293,7 @@ if __name__ == '__main__':
         warnings.simplefilter("always")
         que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
         for warn in caught_warnings:
-            if warn.message.find('Port 8787 is already in use') != -1:
+            if str(warn.message).find('Port 8787 is already in use') != -1:
                 print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit!{bcolors.ENDC}") 
                 exit()
 
