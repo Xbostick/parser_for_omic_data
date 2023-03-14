@@ -288,8 +288,10 @@ if __name__ == '__main__':
     PORT    =   hyperparametrs["PORT"]
     FILE_PATH = hyperparametrs["file_path"]
      
-
-    que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
+    try:
+        que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
+    except UserWarning:
+        print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit, kekw!{bcolors.ENDC}") 
 
     options = {
         #Parse arguments from cmd line to special dict
