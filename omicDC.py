@@ -190,7 +190,7 @@ def create_sorted_bed_file(
                 )
 
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
-    os.chmod(path_2_sorted_file,stat.S_IRWXO)
+    os.chmod(path_2_sorted_file,33279)
 
     for part in range(df.npartitions):
         process_list.append(que.submit(
