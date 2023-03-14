@@ -169,7 +169,8 @@ def create_sorted_bed_file(
         match_exp_df
     ):
 
-    if im_not_alone: 
+    if im_not_alone:
+        print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit!{bcolors.ENDC}") 
         exit()
 
     path_2_sorted_file = FILE_PATH + "filtred_" + filename + ".csv"
