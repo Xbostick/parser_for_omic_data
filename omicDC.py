@@ -10,6 +10,7 @@ from dask.distributed import progress
 
 import multiprocessing
 import os
+import warnings
 
 from joblib import Parallel, delayed, load, dump
 from Sparse_vector.sparse_vector import SparseVector
@@ -275,7 +276,7 @@ def parse_private():
 
 
 if __name__ == '__main__':
-    
+    warnings.filterwarnings("error")
     args = cmd_line.parse_args()
 
     print(f"{bcolors.OKCYAN}Be aware of bugs{bcolors.ENDC}")
