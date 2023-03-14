@@ -2,6 +2,7 @@ import argparse
 import pandas as pd
 import numpy as np
 import dask.dataframe as dd
+import stat
 import time
 import dask
 from dask.distributed import Client
@@ -189,7 +190,8 @@ def create_sorted_bed_file(
                 )
 
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
-    
+    os.chmod(path_2_sorted_file,stat.S_IRWXO)
+
     for part in range(df.npartitions):
         process_list.append(que.submit(
                                 add_sorted_bed_2_file,  
