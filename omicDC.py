@@ -12,6 +12,7 @@ from dask.distributed import progress
 import multiprocessing
 import os
 import warnings
+import tqdm
 
 from joblib import Parallel, delayed, load, dump
 from Sparse_vector.sparse_vector import SparseVector
@@ -147,13 +148,15 @@ def add_sorted_bed_2_file(
             filename,
             df,
             num,
-            matching_experiments
+            matching_experiments,
+            pbar
         ): 
     part = df.partitions[num]
 
     part = part.loc[part['id'].isin(matching_experiments)]
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
+    pbar.update(1)
     return num
 
 def im_not_alone(filename):
@@ -171,11 +174,6 @@ def create_sorted_bed_file(
         match_exp_df
     ):
 
-    # if im_not_alone:
-    #     print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit!{bcolors.ENDC}") 
-    #     while im_not_alone:
-    #         pass
-
     path_2_sorted_file = FILE_PATH + "filtred_" + filename + ".csv"
 
     process_list = []
@@ -192,13 +190,16 @@ def create_sorted_bed_file(
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
     os.chmod(path_2_sorted_file,33279)
 
+    pbar = tqdm(total=df.npartitions)
+
     for part in range(df.npartitions):
         process_list.append(que.submit(
                                 add_sorted_bed_2_file,  
                                 path_2_sorted_file,
                                 df,
                                 part,
-                                matching_experiments
+                                matching_experiments,
+                                pbar
                                 )) 
     #TODO progress bar
     if args.verbose: 
@@ -208,7 +209,8 @@ def create_sorted_bed_file(
     
     
     a = [process.result() for process in process_list]
-    progress(a, notebook = False)
+    pbar.close()
+    
     
 
 
