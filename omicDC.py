@@ -12,7 +12,7 @@ from dask.distributed import progress
 import multiprocessing
 import os
 import warnings
-import tqdm
+from tqdm import tqdm
 
 from joblib import Parallel, delayed, load, dump
 from Sparse_vector.sparse_vector import SparseVector
