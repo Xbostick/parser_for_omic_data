@@ -149,14 +149,15 @@ def add_sorted_bed_2_file(
             df,
             num,
             matching_experiments,
-            pbar
+            pbar_list
         ): 
     part = df.partitions[num]
 
     part = part.loc[part['id'].isin(matching_experiments)]
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
-    pbar.update(1)
+    pbar_list[num] = 1
+    print(str(sum(pbar_list)) + '\r')
     return num
 
 def im_not_alone(filename):
@@ -190,7 +191,7 @@ def create_sorted_bed_file(
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
     os.chmod(path_2_sorted_file,33279)
 
-    pbar = tqdm(total=df.npartitions)
+    pbar_list = []
 
     for part in range(df.npartitions):
         process_list.append(que.submit(
@@ -199,17 +200,18 @@ def create_sorted_bed_file(
                                 df,
                                 part,
                                 matching_experiments,
-                                pbar
-                                )) 
+                                pbar_list
+                                ))
+        pbar_list.append(0) 
     #TODO progress bar
     if args.verbose: 
         print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status\n")
 
         print(f"{bcolors.OKCYAN}Progress bar is not working yet. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
     
-    
+    print()
     a = [process.result() for process in process_list]
-    pbar.close()
+    
     
     
 
