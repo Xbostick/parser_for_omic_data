@@ -195,6 +195,7 @@ def create_sorted_bed_file(
     pbar_list = []
 
     for part in range(df.npartitions):
+        pbar_list.append(0) 
         process_list.append(que.submit(
                                 add_sorted_bed_2_file,  
                                 path_2_sorted_file,
@@ -203,7 +204,7 @@ def create_sorted_bed_file(
                                 matching_experiments,
                                 pbar_list
                                 ))
-        pbar_list.append(0) 
+        
     #TODO progress bar
     if args.verbose: 
         print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status\n")
