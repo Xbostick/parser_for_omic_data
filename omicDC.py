@@ -277,10 +277,10 @@ def logging(options):
     cwd = os.getcwd()
     f = open(cwd + "/log.txt", mode  = 'a')
     f.write("\n-----------------------------------\n")
-    f.write(time.ctime(time.time()),'\n')
-    f.write(os.getlogin(),'\n')
+    f.write(time.ctime(time.time()) + '\n')
+    f.write(os.getlogin()+ '\n')
     for key,value in options.items():
-            f.write(key, ':', value,'\n')
+            f.write(key + ':' +  value + '\n')
     
 
 
