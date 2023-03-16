@@ -280,7 +280,7 @@ def logging(options):
     f.write(time.ctime(time.time()) + '\n')
     f.write(os.getlogin()+ '\n')
     for key,value in options.items():
-            f.write(key + ':' +  value + '\n')
+            f.write(str(key) + ':' +  str(value) + '\n')
     
 
 
