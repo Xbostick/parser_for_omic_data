@@ -142,23 +142,20 @@ def create_matching_expirement_df(
             match_exp_df = match_exp_df.loc[match_exp_df[key].isin(tmp)]
 
     return match_exp_df
-
-
+pbar = 0
 def add_sorted_bed_2_file( 
             filename,
             df,
             num,
             matching_experiments,
-            pbar_list
         ): 
     part = df.partitions[num]
 
     part = part.loc[part['id'].isin(matching_experiments)]
     part = part.compute()
-    print(pbar_list)
+    pbar +=1
     part.to_csv(filename, index=False, header=False, mode='a')
-    pbar_list[num] = 1
-    print(str(sum(pbar_list)) + '\r')
+    print(pbar + '\r')
     return num
 #python3 omicDC.py -g mm9 -b Histone  
 def im_not_alone(filename):
@@ -201,8 +198,7 @@ def create_sorted_bed_file(
                                 path_2_sorted_file,
                                 df,
                                 part,
-                                matching_experiments,
-                                pbar_list
+                                matching_experiments                                
                                 ))
         
     #TODO progress bar
@@ -211,7 +207,7 @@ def create_sorted_bed_file(
 
         print(f"{bcolors.OKCYAN}Progress bar is not working yet. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
     
-    print()
+
     a = [process.result() for process in process_list]
     
     
