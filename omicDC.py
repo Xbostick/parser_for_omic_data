@@ -155,11 +155,12 @@ def add_sorted_bed_2_file(
 
     part = part.loc[part['id'].isin(matching_experiments)]
     part = part.compute()
+    print(pbar_list)
     part.to_csv(filename, index=False, header=False, mode='a')
     pbar_list[num] = 1
     print(str(sum(pbar_list)) + '\r')
     return num
-
+#python3 omicDC.py -g mm9 -b Histone  
 def im_not_alone(filename):
     directory = os.listdir('./')
     is_multiuser = 0
