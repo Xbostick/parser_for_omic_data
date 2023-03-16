@@ -273,6 +273,16 @@ def parse_private():
                 print(key, ':', val)
     return(d)   
 
+def logging(options):
+    cwd = os.getcwd()
+    f = open(cwd + "/log.txt", mode  = 'a')
+    f.write("\n-----------------------------------\n")
+    f.write(time.ctime(time.time()),'\n')
+    f.write(os.getlogin(),'\n')
+    for key,value in options.items():
+            f.write(key, ':', value,'\n')
+    
+
 
 if __name__ == '__main__':
     
@@ -310,6 +320,8 @@ if __name__ == '__main__':
     for key in options.keys():
         if options[key]:
             options[key] = options[key].replace('_', ' ')
+    
+    logging(options)
     
     if args.verbose: 
         print("Succes parse arguments!")
