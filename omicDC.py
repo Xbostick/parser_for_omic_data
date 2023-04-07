@@ -50,9 +50,10 @@ cmd_line.add_argument(
     help='Genome assembly'
 )
 
+# (н) поменял букву ключа
 cmd_line.add_argument(
     '--antigen_class',
-    '-b',
+    '-n',
     type=str,
     default=None,
     help='Antigen class'
@@ -90,7 +91,6 @@ cmd_line.add_argument(
     help='Path to export files'
 )
 
-
 cmd_line.add_argument(
     '--verbose',
     '-v',
@@ -99,7 +99,19 @@ cmd_line.add_argument(
     help='verbose operation'
 )
 
+# (н) добавил опцию
+# бед файл без заголовка в первой строке и разделитель \t
+cmd_line.add_argument(
+    '--bed',
+    '-b',
+    type=str,
+    default=None,
+    help='Bed file'
+)
 
+
+# (н)
+# а зачем тут это? оно ж не юзается нигде
 def get_matching_experimnet_part(
             df, 
             num,
@@ -127,7 +139,6 @@ def create_matching_expirement_df(
     # match_exp_df - df for matching experiments
     match_exp_df = pd.read_csv(
                     FILE_PATH + filename,
-
                     sep = '\t', 
                     names = ['id', 'Genome assembly', 'Antigen class', 'Antigen', 'Cell type class', 'Cell type'],
                     usecols=range(6)
@@ -135,23 +146,45 @@ def create_matching_expirement_df(
     if args.verbose:
         print("Find file " +  FILE_PATH + filename)
 
+    # (н)
+    # бед файл нельзя тут обрабатывать, так как в exp list.tab нет нужных данных
     for key in options.keys():
-        if options[key]:
+        if options[key] and key != "Bed file":
             tmp = options[key].split(',')
             match_exp_df = match_exp_df.loc[match_exp_df[key].isin(tmp)]
 
     return match_exp_df
 
 
+def check_intersection(row1, row2):
+    return (row1['begin'] <= row2['end_b']) and (row2['begin_b'] <= row1['end'])
+
+
 def add_sorted_bed_2_file( 
             filename,
             df,
             num,
-            matching_experiments
-        ): 
+            matching_experiments,
+            bed_file_df
+        ):
     part = df.partitions[num]
 
     part = part.loc[part['id'].isin(matching_experiments)]
+
+    # (н)
+    # сливаем два дф в один
+    # сохраняются только те строки, где chr одинаковые (остальные значения пока не важны)
+    # значения бед датасета дописываются двумя колонками справа (begin_b и end_b)
+    #
+    # создаем колонку intersects и ставим в ней True, если отрезки пересекаются
+    #
+    # оставляем только ту часть df, у которой колонка True
+    # берем в итог только нужные нам колонки
+    if bed_file_df:
+        part = part.merge(part, bed_file_df, on='chr', how='inner')
+        part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+        part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
@@ -168,7 +201,8 @@ def im_not_alone(filename):
 def create_sorted_bed_file(
         que,
         filename,
-        match_exp_df
+        match_exp_df,
+        bed_file_df
     ):
 
     # if im_not_alone:
@@ -185,20 +219,21 @@ def create_sorted_bed_file(
     df = dd.read_csv(   
                 FILE_PATH + filename,
                 sep = "\t", 
-                names = ["chr", 'begin', 'end', 'id', 'score'],
+                names = ['chr', 'begin', 'end', 'id', 'score'],
                 blocksize = '100mb'
                 )
 
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
-    os.chmod(path_2_sorted_file,33279)
+    os.chmod(path_2_sorted_file, 33279)
 
     for part in range(df.npartitions):
         process_list.append(que.submit(
-                                add_sorted_bed_2_file,  
+                                add_sorted_bed_2_file,
                                 path_2_sorted_file,
                                 df,
                                 part,
-                                matching_experiments
+                                matching_experiments,
+                                bed_file_df
                                 )) 
     #TODO progress bar
     if args.verbose: 
@@ -255,8 +290,7 @@ def create_features_files(
     
     Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, filename, path) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
-    
-        
+
 
 def parse_private():
     d = {}
@@ -271,7 +305,8 @@ def parse_private():
 
             if args.verbose:
                 print(key, ':', val)
-    return(d)   
+    return(d)
+
 
 def logging(options):
     cwd = os.getcwd()
@@ -281,7 +316,6 @@ def logging(options):
     f.write(os.getlogin()+ '\n')
     for key,value in options.items():
             f.write(str(key) + ':' +  str(value) + '\n')
-    
 
 
 if __name__ == '__main__':
@@ -297,7 +331,7 @@ if __name__ == '__main__':
     IP = hyperparametrs["IP"]
     PORT    =   hyperparametrs["PORT"]
     FILE_PATH = hyperparametrs["file_path"]
-     
+    
     with warnings.catch_warnings(record=True) as caught_warnings:
         warnings.simplefilter("always")
         que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
@@ -305,8 +339,9 @@ if __name__ == '__main__':
             if str(warn.message).find('Port 8787 is already in use') != -1:
                 print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit!{bcolors.ENDC}") 
                 exit()
-
-
+    
+    
+    # (н) добавил опцию
     options = {
         #Parse arguments from cmd line to special dict
         "id"                :   args.id,
@@ -314,16 +349,19 @@ if __name__ == '__main__':
         "Antigen class"     :   args.antigen_class,
         "Antigen"           :   args.antigen,
         "Cell type class"   :   args.cell_type,
-        "Cell type'"        :   args.cell
+        "Cell type"         :   args.cell,
+        "Bed file"          :   args.bed
     }
-
-    for key in options.keys():
-        if options[key]:
-            options[key] = options[key].replace('_', ' ')
     
+    # (н) не нужно добавлять пробелы в имя бед файла
+    for key in options.keys():
+        if options[key] and key != "Bed file":
+            options[key] = options[key].replace('_', ' ')
+
+
     logging(options)
     
-    if args.verbose: 
+    if args.verbose:
         print("Succes parse arguments!")
         for key,value in options.items():
             print(key, ':', value)
@@ -333,13 +371,24 @@ if __name__ == '__main__':
     if args.verbose:
         print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
     
-    create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
+    # (н) отдельная обработка bed файла
+    if options["Bed file"]:
+        bed_file_df = dd.read_csv(
+                        options["Bed file"],
+                        sep = '\t',
+                        names = ['chr', 'begin_b', 'end_b'],
+                    )
 
+        create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df, bed_file_df)
+    else:
+        create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df, None)
 
+    
+    
     que.shutdown()
-    if args.verbose: 
+    if args.verbose:
         print('Feature creation started')
     create_features_files(match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path)
     print('Feature creation fineshed')
     os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
-    
+
