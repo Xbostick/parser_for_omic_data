@@ -33,6 +33,7 @@ class bcolors:
 
 #cmd line module init
 cmd_line = argparse.ArgumentParser(description='Script for parsing and saving omic data')
+
 # add fields to parser
 cmd_line.add_argument(
     '--id',
@@ -99,7 +100,6 @@ cmd_line.add_argument(
     help='verbose operation'
 )
 
-# (н) добавил опцию
 # бед файл без заголовка в первой строке и разделитель \t
 cmd_line.add_argument(
     '--bed',
@@ -109,31 +109,12 @@ cmd_line.add_argument(
     help='Bed file'
 )
 
-
-# (н)
-# а зачем тут это? оно ж не юзается нигде
-def get_matching_experimnet_part(
-            df, 
-            num,
-            options
-        ):
-    # num - chunk number
-    # options - list of arguments
-    part = df.partitions[num]
-    
-    for key in options.keys():
-        if options[key]:
-            tmp = options[key].split(',')
-            part = part.loc[part[key].isin(tmp)]
-    part = part.compute()
-    return part
-
-
 def create_matching_expirement_df(
             que, 
             filename, 
             options
-        ): #    Return expirement names list
+        ):   
+    """ Function to return expirement names list"""
     
 
     # match_exp_df - df for matching experiments
@@ -146,10 +127,9 @@ def create_matching_expirement_df(
     if args.verbose:
         print("Find file " +  FILE_PATH + filename)
 
-    # (н)
-    # бед файл нельзя тут обрабатывать, так как в exp list.tab нет нужных данных
+    # Checking is it Bed
     for key in options.keys():
-        if options[key] and key != "Bed file":
+        if options[key]:
             tmp = options[key].split(',')
             match_exp_df = match_exp_df.loc[match_exp_df[key].isin(tmp)]
 
@@ -157,7 +137,10 @@ def create_matching_expirement_df(
 
 
 def check_intersection(row1, row2):
-    return (row1['begin'] <= row2['end_b']) and (row2['begin_b'] <= row1['end'])
+    # поправил условие
+    return (abs(row1['begin'] - row2['begin_b']) <= 10) \
+       and (abs(row1['end'] - row2['end_b']) <= 10) 
+       
 
 
 def add_sorted_bed_2_file( 
@@ -165,8 +148,9 @@ def add_sorted_bed_2_file(
             df,
             num,
             matching_experiments,
-            bed_file_df
+            bed_file_df = None
         ):
+    """ Function to add lines to .csv file from part of sorted .bed files"""
     part = df.partitions[num]
 
     part = part.loc[part['id'].isin(matching_experiments)]
@@ -190,6 +174,7 @@ def add_sorted_bed_2_file(
     return num
 
 def im_not_alone(filename):
+    """Function to check if only one user making executions"""
     directory = os.listdir('./')
     is_multiuser = 0
     for f in directory:
@@ -202,13 +187,9 @@ def create_sorted_bed_file(
         que,
         filename,
         match_exp_df,
-        bed_file_df
+        bed_file_path
     ):
-
-    # if im_not_alone:
-    #     print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit!{bcolors.ENDC}") 
-    #     while im_not_alone:
-    #         pass
+    """Create big .csv table with every finded match"""
 
     path_2_sorted_file = FILE_PATH + "filtred_" + filename + ".csv"
 
@@ -226,7 +207,16 @@ def create_sorted_bed_file(
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
     os.chmod(path_2_sorted_file, 33279)
 
+    if bed_file_path:
+        bed_file_df = dd.read_csv(
+                        bed_file_path,
+                        sep = '\t',
+                        names = ['chr', 'begin_b', 'end_b'],
+                    )
+                    # Как будты бы херь. Тк большой дф передается в каждый субпроцесс, типа
+
     for part in range(df.npartitions):
+        #тут нужно добавить сорт дф беда для хромосом, как будто бы
         process_list.append(que.submit(
                                 add_sorted_bed_2_file,
                                 path_2_sorted_file,
@@ -254,7 +244,8 @@ def create_feature(
         filename,
         path
     ):
-    
+    """Creating features"""
+
     # chroms - list with chroms of the organism
     chroms = list(sizes.keys())
     
@@ -283,7 +274,7 @@ def create_features_files(
 	filename, 
     path
     ):
-    
+    """Create features file"""
     # sizes - dict with cromosome as key and it's len as value
     sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
     sizes = dict(sizes.values)
@@ -293,6 +284,7 @@ def create_features_files(
 
 
 def parse_private():
+    """Function to take data from private .txt file"""
     d = {}
     with open(PRIVATE_PATH) as f:
         for line in f:
@@ -309,6 +301,7 @@ def parse_private():
 
 
 def logging(options):
+    """Logging function"""
     cwd = os.getcwd()
     f = open(cwd + "/log.txt", mode  = 'a')
     f.write("\n-----------------------------------\n")
@@ -349,15 +342,12 @@ if __name__ == '__main__':
         "Antigen class"     :   args.antigen_class,
         "Antigen"           :   args.antigen,
         "Cell type class"   :   args.cell_type,
-        "Cell type"         :   args.cell,
-        "Bed file"          :   args.bed
+        "Cell type"         :   args.cell
     }
-    
-    # (н) не нужно добавлять пробелы в имя бед файла
-    for key in options.keys():
-        if options[key] and key != "Bed file":
-            options[key] = options[key].replace('_', ' ')
 
+    for key in options.keys():
+        if options[key]:
+            options[key] = options[key].replace('_', ' ')
 
     logging(options)
     
@@ -371,21 +361,10 @@ if __name__ == '__main__':
     if args.verbose:
         print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
     
-    # (н) отдельная обработка bed файла
-    if options["Bed file"]:
-        bed_file_df = dd.read_csv(
-                        options["Bed file"],
-                        sep = '\t',
-                        names = ['chr', 'begin_b', 'end_b'],
-                    )
+    create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df, args.bed)
 
-        create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df, bed_file_df)
-    else:
-        create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df, None)
-
-    
-    
     que.shutdown()
+
     if args.verbose:
         print('Feature creation started')
     create_features_files(match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path)
