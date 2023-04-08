@@ -178,7 +178,7 @@ def add_user_bed_markers(
                             bed_file_path,
                             sep = '\t',
                             names = ['chr', 'begin_b', 'end_b'],
-                        ),
+                        )
     df = df.merge(bed_csv, on='chr')
     df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
     df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
