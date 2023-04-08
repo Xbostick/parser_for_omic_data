@@ -172,7 +172,7 @@ def add_sorted_bed_2_file(
                         names = ['chr', 'begin_b', 'end_b'],
                     )
         print(f"part {part.head()} bed {bed_file_df.head()}")
-        part = part.merge(part, bed_file_df, on='chr')
+        part = part.merge(bed_file_df, on='chr')
         print("1\n\n\n\n\n\n\n\n\n")
         part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
         print("2\n\n\n\n\n\n\n\n\n")
