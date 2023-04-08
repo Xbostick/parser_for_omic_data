@@ -254,10 +254,10 @@ def create_feature(
     chroms = list(sizes.keys())
     # data - dict with values of exp for each cromosome
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
-    print(chroms)
+
     exp_df = exp_df[exp_df['id'].isin(exps)]
     exp_df = exp_df[exp_df['chr'].isin(chroms)]
-    print(chroms)
+    print(exp_df.values)
     for line in exp_df.values:
         chrm, begin, end, ee, value = line
         data[chrm][begin: end] = np.maximum(data[chrm][begin: end], value)
