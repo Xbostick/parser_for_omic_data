@@ -144,7 +144,7 @@ def check_intersection(row1, row2):
 
 def make_intersect(df,num,filename):
     part = df.partitions[num]
-    part = part.loc[(df['begin'] <= df['end_b']) and (df['begin_b'] <= df['end'])]
+    part = part.loc[(part['begin'] <= part['end_b']) and (part['begin_b'] <= part['end'])]
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
 
