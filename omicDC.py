@@ -257,8 +257,9 @@ def create_feature(
 
     exp_df = exp_df[exp_df['id'].isin(exps)]
     exp_df = exp_df[exp_df['chr'].isin(chroms)]
-    print(exp_df.values)
-    for line in exp_df.values:
+    values = exp_df.values
+    print(values.compute())
+    for line in values.compute():
         chrm, begin, end, ee, value = line
         data[chrm][begin: end] = np.maximum(data[chrm][begin: end], value)
 
