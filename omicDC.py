@@ -257,9 +257,7 @@ def create_feature(
 
     exp_df = exp_df[exp_df['id'].isin(exps)]
     exp_df = exp_df[exp_df['chr'].isin(chroms)]
-    values = exp_df.values
-    print(values.compute())
-    for line in values.compute():
+    for line in exp_df.values:
         chrm, begin, end, ee, value = line
         data[chrm][begin: end] = np.maximum(data[chrm][begin: end], value)
 
@@ -283,13 +281,13 @@ def create_features_files(
     sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
     sizes = dict(sizes.values)
     # exp_df - df with selected rows from chip-atlas bed file
-    exp_df = dd.read_csv(
+    exp_df = pd.read_csv(
         FILE_PATH + "filtred_" + filename + ".csv", 
         header=None, 
         sep=',', 
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
-    print(exp_df.head())
+
 
     if bed_file_path:
         if args.verbose:
