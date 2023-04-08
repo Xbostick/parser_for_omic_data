@@ -176,10 +176,10 @@ def add_user_bed_markers(
                             names = ['chr', 'begin_b', 'end_b'],
                             blocksize = '5mb'
                         )
-    
+    print(df.loc['chr1':'chr2'].head())
     bed_csv.set_index('chr')
-    print(df.loc['chr1'].head())
-    print(bed_csv.loc['chr1'].head())
+    
+    print(bed_csv.loc['chr1':'chr2'].head())
     for part in range(df_m.npartitions):
         process_list.append(que.submit(
                                 make_intersect,
