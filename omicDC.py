@@ -262,7 +262,7 @@ def create_feature(
     for line in exp_df.values:
         chrm, begin, end, ee, value = line
         data[chrm][begin: end] = np.maximum(data[chrm][begin: end], value)
-    
+    print(chroms)
     # data_sparse - convert data to sparse
     data_sparse = {chrm:SparseVector(data[chrm]) for chrm in chroms}
     
