@@ -258,8 +258,8 @@ def create_feature(
     # data - dict with values of exp for each cromosome
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
     
-    exp_df = exp_df[exp_df[3].isin(exps)]
-    exp_df = exp_df[exp_df[0].isin(chroms)]
+    exp_df = exp_df[exp_df['id'].isin(exps)]
+    exp_df = exp_df[exp_df['chr'].isin(chroms)]
     
     for line in exp_df.values:
         chrm, begin, end, ee, value = line
@@ -283,6 +283,7 @@ def create_features_files(
     """Create features file"""
     # sizes - dict with cromosome as key and it's len as value
     sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
+    print(sizes.head())
     sizes = dict(sizes.values)
     # exp_df - df with selected rows from chip-atlas bed file
     exp_df = dd.read_csv(
