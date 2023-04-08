@@ -188,8 +188,7 @@ def add_user_bed_markers(
 def create_sorted_bed_file(
         que,
         filename,
-        match_exp_df,
-        bed_file_path
+        match_exp_df
     ):
     """Create big .csv table with every finded match"""
 
