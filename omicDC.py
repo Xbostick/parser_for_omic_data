@@ -182,7 +182,7 @@ def add_user_bed_markers(
     for part in range(df.npartitions):
         process_list.append(que.submit(
                                 make_intersect,
-                                df,
+                                df_m,
                                 part,
                                 path_2_sorted_file_with_user_bed
                                 )) 
