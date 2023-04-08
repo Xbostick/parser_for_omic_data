@@ -175,7 +175,7 @@ def add_user_bed_markers(
                             sep = '\t',
                             names = ['chr', 'begin_b', 'end_b']
                         )
-    df = df.merge(bed_csv, on='chr', how='inner')
+    df = df.merge(bed_csv, on=['chr'])
     print(df.head())
     exit()
     for part in range(df.npartitions):
