@@ -137,9 +137,9 @@ def create_matching_expirement_df(
 
 
 def check_intersection(row1, row2):
-    # поправил условие
-    return (abs(row1['begin'] - row2['begin_b']) <= 10) \
-       and (abs(row1['end'] - row2['end_b']) <= 10) 
+    return (row1['begin'] <= row2['end_b']) and (row2['begin_b'] <= row1['end'])
+        #return (abs(row1['begin'] - row2['begin_b']) <= 10) \
+    #   and (abs(row1['end'] - row2['end_b']) <= 10) 
        
 
 
@@ -213,10 +213,8 @@ def create_sorted_bed_file(
                         sep = '\t',
                         names = ['chr', 'begin_b', 'end_b'],
                     )
-                    # Как будты бы херь. Тк большой дф передается в каждый субпроцесс, типа
 
     for part in range(df.npartitions):
-        #тут нужно добавить сорт дф беда для хромосом, как будто бы
         process_list.append(que.submit(
                                 add_sorted_bed_2_file,
                                 path_2_sorted_file,
