@@ -142,6 +142,53 @@ def check_intersection(row1, row2):
     #   and (abs(row1['end'] - row2['end_b']) <= 10) 
        
 
+def make_intersect(df,num,filename):
+    part = df.partitions[num]
+    part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+    part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+    part.to_csv(filename, index=False, header=False, mode='a')
+    return num
+
+
+def add_user_bed_markers(
+        que,
+        filename,
+        bed_file_path,
+    ):
+    """ Merging sorted df with user`s .bed file as two additional cols
+        Saving onli rows with several chr.
+        Creating new 'intersect' column with booleans.
+        Returning df with only intersected"""
+    path_2_sorted_file_with_user_bed = FILE_PATH + "filtred_and_bed" + filename + ".csv"
+
+    df = dd.read_csv(
+        FILE_PATH + "filtred_" + filename + ".csv", 
+        header=None, 
+        sep=',',
+        names = ['chr', 'begin', 'end', 'id', 'score'],
+        blocksize = '50mb'
+        )
+    
+    process_list = []
+    bed_csv = dd.read_csv(
+                            bed_file_path,
+                            sep = '\t',
+                            names = ['chr', 'begin_b', 'end_b']
+                        )
+    df = df.merge(bed_csv, on='chr', how='inner')
+
+    for part in range(df.npartitions):
+        process_list.append(que.submit(
+                                make_intersect,
+                                df,
+                                part,
+                                path_2_sorted_file_with_user_bed
+                                )) 
+    
+    a = [process.result() for process in process_list]
+
+    return df.compute()
+
 
 def add_sorted_bed_2_file( 
             filename,
@@ -155,23 +202,6 @@ def add_sorted_bed_2_file(
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
-
-def im_not_alone(filename):
-    """Function to check if only one user making executions"""
-    directory = os.listdir('./')
-    is_multiuser = 0
-    for f in directory:
-        if f.find("filtred_") != -1:
-            is_multiuser = 1
-    return is_multiuser
-
-def make_intersect(df,num):
-    part = df.partitions[num]
-    part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
-    part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
-    part = part.compute()
-    return num
-
 
 def create_sorted_bed_file(
         que,
@@ -244,43 +274,6 @@ def create_feature(
     dump(data_sparse, os.path.expanduser(path)+"/omicDC_results/" + key[0].replace(' ', '_') + "_"+key[1] + ".pkl", 3)
 
 
-def add_user_bed_markers(
-        que,
-        filename,
-        bed_file_path,
-    ):
-    """ Merging sorted df with user`s .bed file as two additional cols
-        Saving onli rows with several chr.
-        Creating new 'intersect' column with booleans.
-        Returning df with only intersected"""
-    df = dd.read_csv(
-        FILE_PATH + "filtred_" + filename + ".csv", 
-        header=None, 
-        sep=',',
-        names = ['chr', 'begin', 'end', 'id', 'score'],
-        blocksize = '50mb'
-        )
-    
-    process_list = []
-    bed_csv = dd.read_csv(
-                            bed_file_path,
-                            sep = '\t',
-                            names = ['chr', 'begin_b', 'end_b']
-                        )
-    df = df.merge(bed_csv, on='chr', how='inner')
-
-    for part in range(df.npartitions):
-        process_list.append(que.submit(
-                                make_intersect,
-                                df,
-                                part
-                                )) 
-    
-    a = [process.result() for process in process_list]
-
-    return df.compute()
-
-
 def create_features_files(
     que,
 	match_exp_df,
@@ -347,6 +340,7 @@ if __name__ == '__main__':
     PORT    =   hyperparametrs["PORT"]
     FILE_PATH = hyperparametrs["file_path"]
     
+    #check is user alone
     with warnings.catch_warnings(record=True) as caught_warnings:
         warnings.simplefilter("always")
         que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
