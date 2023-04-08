@@ -166,7 +166,7 @@ def add_user_bed_markers(
         header=None, 
         sep=',',
         names = ['chr', 'begin', 'end', 'id', 'score'],
-        blocksize = '10mb'
+        blocksize = '5mb'
         )
     
     process_list = []
@@ -174,7 +174,7 @@ def add_user_bed_markers(
                             bed_file_path,
                             sep = '\t',
                             names = ['chr', 'begin_b', 'end_b'],
-                            blocksize = '10mb'
+                            blocksize = '5mb'
                         )
     df.set_index('chr')
     df_m = df.merge(bed_csv, on = ['chr'])
@@ -203,6 +203,7 @@ def add_sorted_bed_2_file(
     part = part.loc[part['id'].isin(matching_experiments)]
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
+
     return num
 
 def create_sorted_bed_file(
