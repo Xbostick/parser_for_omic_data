@@ -128,7 +128,6 @@ def create_matching_expirement_df(
     if args.verbose:
         print("Find file " +  FILE_PATH + filename)
 
-    # Checking is it Bed
     for key in options.keys():
         if options[key]:
             tmp = options[key].split(',')
@@ -166,7 +165,15 @@ def im_not_alone(filename):
             is_multiuser = 1
     return is_multiuser
 
+def make_intersect(df,num):
+    part = df.partitions[num]
+    df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+    df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+    df = df.compute()
+    return num
+
 def add_user_bed_markers(
+        que,
         df,
         bed_file_path,
     ):
@@ -174,17 +181,24 @@ def add_user_bed_markers(
         Saving onli rows with several chr.
         Creating new 'intersect' column with booleans.
         Returning df with only intersected"""
-    bed_csv = pd.read_csv(
+    process_list = []
+    bed_csv = dd.read_csv(
                             bed_file_path,
                             sep = '\t',
                             names = ['chr', 'begin_b', 'end_b']
                         )
-    print(bed_csv.head())
-    print(df.head())
-    df = pd.merge(df,bed_csv, on='chr', how='inner')
-    df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
-    df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
-    return df
+    df = df.merge(bed_csv, on='chr', how='inner')
+
+    for part in range(df.npartitions):
+        process_list.append(que.submit(
+                                make_intersect,
+                                df,
+                                part
+                                )) 
+    
+    a = [process.result() for process in process_list]
+
+    return df.compute()
 
 
 def create_sorted_bed_file(
@@ -204,7 +218,7 @@ def create_sorted_bed_file(
                 FILE_PATH + filename,
                 sep = "\t", 
                 names = ['chr', 'begin', 'end', 'id', 'score'],
-                blocksize = '100mb'
+                blocksize = '50mb'
                 )
 
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
@@ -270,7 +284,7 @@ def create_features_files(
     sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
     sizes = dict(sizes.values)
     # exp_df - df with selected rows from chip-atlas bed file
-    exp_df = pd.read_csv(
+    exp_df = dd.read_csv(
         FILE_PATH + "filtred_" + filename + ".csv", 
         header=None, 
         sep=',', 
