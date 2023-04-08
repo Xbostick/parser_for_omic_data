@@ -109,26 +109,6 @@ cmd_line.add_argument(
     help='Bed file'
 )
 
-
-# (н)
-# а зачем тут это? оно ж не юзается нигде
-def get_matching_experimnet_part(
-            df, 
-            num,
-            options
-        ):
-    # num - chunk number
-    # options - list of arguments
-    part = df.partitions[num]
-    
-    for key in options.keys():
-        if options[key]:
-            tmp = options[key].split(',')
-            part = part.loc[part[key].isin(tmp)]
-    part = part.compute()
-    return part
-
-
 def create_matching_expirement_df(
             que, 
             filename, 
