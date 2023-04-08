@@ -166,6 +166,7 @@ def add_sorted_bed_2_file(
     # оставляем только ту часть df, у которой колонка True
     # берем в итог только нужные нам колонки
     if bed_file_path:
+        print("check csv")
         bed_file_df = dd.read_csv(
                         bed_file_path,
                         sep = '\t',
