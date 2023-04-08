@@ -384,7 +384,7 @@ if __name__ == '__main__':
 
     if args.verbose:
         print('Feature creation started')
-    create_features_files(match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path, args.bed)
+    create_features_files(que, match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path, args.bed)
     print('Feature creation fineshed')
     os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
 
