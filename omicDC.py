@@ -151,6 +151,7 @@ def add_sorted_bed_2_file(
             bed_file_path
         ):
     """ Function to add lines to .csv file from part of sorted .bed files"""
+    print("its is coming")
     part = df.partitions[num]
 
     part = part.loc[part['id'].isin(matching_experiments)]
