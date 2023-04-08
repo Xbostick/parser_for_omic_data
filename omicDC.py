@@ -166,8 +166,11 @@ def add_sorted_bed_2_file(
     # берем в итог только нужные нам колонки
     if bed_file_df:
         part = part.merge(part, bed_file_df, on='chr', how='inner')
+        print(1)
         part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+        print(2)
         part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+        print(3)
 
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
