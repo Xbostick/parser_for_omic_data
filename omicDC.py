@@ -291,7 +291,7 @@ def create_features_files(
         FILE_PATH + "filtred_" + filename + ".csv", 
         header=None, 
         sep=','
-        #names = ['chr', 'begin', 'end', 'id', 'score']
+        names = ['chr', 'begin', 'end', 'id', 'score']
         )
     
     if bed_file_path:
