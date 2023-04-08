@@ -289,13 +289,15 @@ def create_features_files(
     exp_df = pd.read_csv(
         FILE_PATH + "filtred_" + filename + ".csv", 
         header=None, 
-        sep=',', 
-        names = ['chr', 'begin', 'end', 'id', 'score']
+        sep=','
+        #names = ['chr', 'begin', 'end', 'id', 'score']
         )
+    
     if bed_file_path:
         if args.verbose:
             print(f"Added .bed file on path {bed_file_path}")
         exp_df = add_user_bed_markers(que,exp_df,bed_file_path)
+
     print(exp_df)
     Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
@@ -378,13 +380,14 @@ if __name__ == '__main__':
     
     # if args.verbose:
     #     print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
-    
+
     # create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
 
     # que.shutdown()
 
     if args.verbose:
         print('Feature creation started')
+
     create_features_files(que, match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path, args.bed)
     print('Feature creation fineshed')
     #os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
