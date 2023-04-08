@@ -168,17 +168,18 @@ def add_user_bed_markers(
         names = ['chr', 'begin', 'end', 'id', 'score'],
         blocksize = '5mb'
         )
-    print(df.npartitions)
-    process_list = []
+    df.set_index('chr')
+
     bed_csv = dd.read_csv(
                             bed_file_path,
                             sep = '\t',
                             names = ['chr', 'begin_b', 'end_b'],
                             blocksize = '5mb'
                         )
-    df.set_index('chr')
-    df_m = df.merge(bed_csv, on = ['chr'])
-    print(df_m.npartitions)
+    
+    bed_csv.set_index('chr')
+    print(df.loc['chr1'])
+    print(bed_csv.loc['chr1'])
     for part in range(df_m.npartitions):
         process_list.append(que.submit(
                                 make_intersect,
