@@ -137,7 +137,6 @@ def create_matching_expirement_df(
 
 
 def check_intersection(row1, row2):
-    print(1)
     return (row1['begin'] <= row2['end_b']) and (row2['begin_b'] <= row1['end'])
         #return (abs(row1['begin'] - row2['begin_b']) <= 10) \
     #   and (abs(row1['end'] - row2['end_b']) <= 10) 
@@ -146,11 +145,8 @@ def check_intersection(row1, row2):
 def make_intersect(df,num,filename):
     part = df.partitions[num]
     part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
-    print(2)
     part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
-    print(3)
     part.to_csv(filename, index=False, header=False, mode='a')
-    print(4)
     return num
 
 
@@ -385,7 +381,7 @@ if __name__ == '__main__':
     # create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
 
     # que.shutdown()
-
+    que = Client(n_workers=NCORES/2, threads_per_worker=NWORKERS/2)
     if args.bed:
         add_user_bed_markers(que,hyperparametrs[args.assembly],args.bed)
         if args.verbose:
