@@ -290,7 +290,7 @@ def create_features_files(
     exp_df = pd.read_csv(
         FILE_PATH + "filtred_" + filename + ".csv", 
         header=None, 
-        sep=','
+        sep=',',
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
     
