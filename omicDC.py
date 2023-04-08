@@ -34,6 +34,7 @@ class bcolors:
 #cmd line module init
 cmd_line = argparse.ArgumentParser(description='Script for parsing and saving omic data')
 
+
 # add fields to parser
 cmd_line.add_argument(
     '--id',
