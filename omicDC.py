@@ -144,8 +144,7 @@ def check_intersection(row1, row2):
 
 def make_intersect(df,num,filename):
     part = df.partitions[num]
-    part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
-    part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+    part = part.loc[(df['begin'] <= df['end_b']) and (df['begin_b'] <= df['end'])]
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
 
@@ -169,17 +168,15 @@ def add_user_bed_markers(
         blocksize = '5mb'
         )
     df.set_index('chr')
-
+    process_list = []
     bed_csv = dd.read_csv(
                             bed_file_path,
                             sep = '\t',
                             names = ['chr', 'begin_b', 'end_b'],
                             blocksize = '5mb'
                         )
-    print(df.index.values.compute())
-    bed_csv.set_index('chr')
     
-    print(bed_csv.loc['chr1':'chr2'].head())
+    df_m = df.merge(bed_csv, on = ['chr'])
     for part in range(df_m.npartitions):
         process_list.append(que.submit(
                                 make_intersect,
