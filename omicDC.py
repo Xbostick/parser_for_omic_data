@@ -382,7 +382,6 @@ if __name__ == '__main__':
     # create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
 
     # que.shutdown()
-    que = Client(n_workers=round(NCORES/2), threads_per_worker=round(NWORKERS/2))
     if args.bed:
         add_user_bed_markers(que,hyperparametrs[args.assembly],args.bed)
         if args.verbose:
