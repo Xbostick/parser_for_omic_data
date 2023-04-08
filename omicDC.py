@@ -283,7 +283,6 @@ def create_features_files(
     """Create features file"""
     # sizes - dict with cromosome as key and it's len as value
     sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
-    print(sizes.head())
     sizes = dict(sizes.values)
     # exp_df - df with selected rows from chip-atlas bed file
     exp_df = dd.read_csv(
@@ -292,6 +291,7 @@ def create_features_files(
         sep=',', 
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
+    print(exp_df.head())
     if bed_file_path:
         if args.verbose:
             print(f"Added .bed file on path {bed_file_path}")
@@ -388,12 +388,12 @@ if __name__ == '__main__':
 
     match_exp_df = create_matching_expirement_df(que, "experimentList.tab", options)
     
-    #if args.verbose:
-    #    print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
+    if args.verbose:
+        print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
     
-    #create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
+    create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
 
-    #que.shutdown()
+    que.shutdown()
 
     if args.verbose:
         print('Feature creation started')
