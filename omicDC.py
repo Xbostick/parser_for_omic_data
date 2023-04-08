@@ -176,7 +176,7 @@ def add_user_bed_markers(
                             names = ['chr', 'begin_b', 'end_b'],
                             blocksize = '5mb'
                         )
-    print(df.loc['chr1':'chr2'].head())
+    print(df.index.values)
     bed_csv.set_index('chr')
     
     print(bed_csv.loc['chr1':'chr2'].head())
