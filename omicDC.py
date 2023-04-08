@@ -143,6 +143,7 @@ def check_intersection(row1, row2):
        
 
 def make_intersect(df,num,filename):
+    print(1)
     part = df.partitions[num]
     print(part.head())
     part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
