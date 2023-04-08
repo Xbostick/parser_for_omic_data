@@ -187,7 +187,7 @@ def add_user_bed_markers(
                                 )) 
     print(type(process_list[1]))
 
-    a = [Client.persist(process) for process in process_list]
+    a = [process.compute() for process in process_list]
 
     return a
 
