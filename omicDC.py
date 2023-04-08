@@ -213,6 +213,8 @@ def create_sorted_bed_file(
                         sep = '\t',
                         names = ['chr', 'begin_b', 'end_b'],
                     )
+        if args.verbose:
+            print(f"Added .bed file on path {bed_file_path}. \nHead of .bed\n{bed_file_df.head()}")
 
     for part in range(df.npartitions):
         process_list.append(que.submit(
