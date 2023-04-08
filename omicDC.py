@@ -177,9 +177,10 @@ def add_user_bed_markers(
     bed_csv = pd.read_csv(
                             bed_file_path,
                             sep = '\t',
-                            names = ['chr', 'begin_b', 'end_b'],
+                            names = ['chr', 'begin_b', 'end_b']
                         )
-    df = df.merge(bed_csv, on='chr')
+    print(bed_csv.head())
+    df = df.merge(bed_csv, on='chr', how='inner')
     df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
     df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
     return df
