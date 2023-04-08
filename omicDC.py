@@ -166,14 +166,15 @@ def add_user_bed_markers(
         header=None, 
         sep=',',
         names = ['chr', 'begin', 'end', 'id', 'score'],
-        blocksize = '50mb'
+        blocksize = '10mb'
         )
     
     process_list = []
     bed_csv = dd.read_csv(
                             bed_file_path,
                             sep = '\t',
-                            names = ['chr', 'begin_b', 'end_b']
+                            names = ['chr', 'begin_b', 'end_b'],
+                            blocksize = '10mb'
                         )
     df.set_index('chr')
     df_m = df.merge(bed_csv, on = ['chr'])
