@@ -178,7 +178,8 @@ def add_user_bed_markers(
     df.set_index('chr')
 
     df_m = df.merge(bed_csv, on = ['chr'])
-    
+    print(df_m)
+    exit()
     for part in range(df.npartitions):
         process_list.append(que.submit(
                                 make_intersect,
