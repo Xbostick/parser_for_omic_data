@@ -292,6 +292,7 @@ def create_features_files(
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
     print(exp_df.head())
+    exit()
     if bed_file_path:
         if args.verbose:
             print(f"Added .bed file on path {bed_file_path}")
