@@ -386,14 +386,14 @@ if __name__ == '__main__':
         for key,value in options.items():
             print(key, ':', value)
 
-    match_exp_df = create_matching_expirement_df(que, "experimentList.tab", options)
+    #match_exp_df = create_matching_expirement_df(que, "experimentList.tab", options)
     
-    if args.verbose:
-        print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
+    #if args.verbose:
+    #    print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
     
-    create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
+    #create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
 
-    que.shutdown()
+    #que.shutdown()
 
     if args.verbose:
         print('Feature creation started')
