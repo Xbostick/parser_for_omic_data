@@ -145,7 +145,7 @@ def check_intersection(row1, row2):
 
 def make_intersect(df,num,filename):
     part = df.partitions[num]
-    part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+    part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1, meta = part)
     print(2)
     part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
     print(3)
