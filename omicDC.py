@@ -167,39 +167,10 @@ def im_not_alone(filename):
 
 def make_intersect(df,num):
     part = df.partitions[num]
-    df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
-    df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
-    df = df.compute()
+    part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+    part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+    part = part.compute()
     return num
-
-def add_user_bed_markers(
-        que,
-        df,
-        bed_file_path,
-    ):
-    """ Merging sorted df with user`s .bed file as two additional cols
-        Saving onli rows with several chr.
-        Creating new 'intersect' column with booleans.
-        Returning df with only intersected"""
-    process_list = []
-    bed_csv = dd.read_csv(
-                            bed_file_path,
-                            sep = '\t',
-                            names = ['chr', 'begin_b', 'end_b']
-                        )
-    df = dd.from_pandas(df, npartitions = 10)
-    df = df.merge(bed_csv, on='chr', how='inner')
-
-    for part in range(df.npartitions):
-        process_list.append(que.submit(
-                                make_intersect,
-                                df,
-                                part
-                                )) 
-    
-    a = [process.result() for process in process_list]
-
-    return df.compute()
 
 
 def create_sorted_bed_file(
@@ -271,6 +242,36 @@ def create_feature(
     
     os.makedirs(os.path.expanduser(path) +"/omicDC_results", exist_ok=True)
     dump(data_sparse, os.path.expanduser(path)+"/omicDC_results/" + key[0].replace(' ', '_') + "_"+key[1] + ".pkl", 3)
+
+
+def add_user_bed_markers(
+        que,
+        df,
+        bed_file_path,
+    ):
+    """ Merging sorted df with user`s .bed file as two additional cols
+        Saving onli rows with several chr.
+        Creating new 'intersect' column with booleans.
+        Returning df with only intersected"""
+    process_list = []
+    bed_csv = dd.read_csv(
+                            bed_file_path,
+                            sep = '\t',
+                            names = ['chr', 'begin_b', 'end_b']
+                        )
+    df = dd.from_pandas(df, npartitions = 10)
+    df = df.merge(bed_csv, on='chr', how='inner')
+
+    for part in range(df.npartitions):
+        process_list.append(que.submit(
+                                make_intersect,
+                                df,
+                                part
+                                )) 
+    
+    a = [process.result() for process in process_list]
+
+    return df.compute()
 
 
 def create_features_files(
