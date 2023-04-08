@@ -270,7 +270,12 @@ def create_features_files(
     sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
     sizes = dict(sizes.values)
     # exp_df - df with selected rows from chip-atlas bed file
-    exp_df = pd.read_csv(FILE_PATH + "filtred_" + filename + ".csv", header=None, sep=',')
+    exp_df = pd.read_csv(
+        FILE_PATH + "filtred_" + filename + ".csv", 
+        header=None, 
+        sep=',', 
+        names = ['chr', 'begin', 'end', 'id', 'score']
+        )
     if bed_file_path:
         if args.verbose:
             print(f"Added .bed file on path {bed_file_path}")
