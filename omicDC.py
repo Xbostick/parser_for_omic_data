@@ -238,7 +238,6 @@ def create_sorted_bed_file(
 
         print(f"{bcolors.OKCYAN}Progress bar is not working yet. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
     
-    
     a = [process.result() for process in process_list]
     progress(a, notebook = False)
 
@@ -251,10 +250,10 @@ def create_feature(
         path
     ):
     """Creating features"""
-
     # chroms - list with chroms of the organism
     chroms = list(sizes.keys())
-    
+    print(chroms)
+    exit()
     # data - dict with values of exp for each cromosome
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
     
@@ -292,11 +291,12 @@ def create_features_files(
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
     print(exp_df.head())
-    exit()
+
     if bed_file_path:
         if args.verbose:
             print(f"Added .bed file on path {bed_file_path}")
         exp_df = add_user_bed_markers(que,exp_df,bed_file_path)
+
     parallel = []
     for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']):
         parallel.append(
