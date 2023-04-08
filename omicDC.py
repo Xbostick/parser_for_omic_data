@@ -232,9 +232,8 @@ def create_feature(
         key,
         exps,
         sizes,
-        filename,
-        path,
-        bed_file_path
+        exp_df,
+        path
     ):
     """Creating features"""
 
@@ -244,12 +243,6 @@ def create_feature(
     # data - dict with values of exp for each cromosome
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
     
-    # exp_df - df with selected rows from chip-atlas bed file
-    exp_df = pd.read_csv(FILE_PATH + "filtred_" + filename + ".csv", header=None, sep=',')
-    if bed_file_path:
-        if args.verbose:
-            print(f"Added .bed file on path {bed_file_path}")
-        exp_df = add_user_bed_markers(exp_df,bed_file_path)
     exp_df = exp_df[exp_df[3].isin(exps)]
     exp_df = exp_df[exp_df[0].isin(chroms)]
     
@@ -268,14 +261,21 @@ def create_features_files(
 	match_exp_df,
 	gen_assembly,
 	filename, 
-    path
+    path,
+    bed_file_path
     ):
     """Create features file"""
     # sizes - dict with cromosome as key and it's len as value
     sizes = pd.read_csv(FILE_PATH + gen_assembly + '.chrom.sizes', sep='\t', header=None)
     sizes = dict(sizes.values)
+    # exp_df - df with selected rows from chip-atlas bed file
+    exp_df = pd.read_csv(FILE_PATH + "filtred_" + filename + ".csv", header=None, sep=',')
+    if bed_file_path:
+        if args.verbose:
+            print(f"Added .bed file on path {bed_file_path}")
+        exp_df = add_user_bed_markers(exp_df,bed_file_path)
     
-    Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, filename, path) 
+    Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
 
 
@@ -357,13 +357,13 @@ if __name__ == '__main__':
     if args.verbose:
         print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
     
-    create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df, args.bed)
+    create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
 
     que.shutdown()
 
     if args.verbose:
         print('Feature creation started')
-    create_features_files(match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path)
+    create_features_files(match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path, args.bed)
     print('Feature creation fineshed')
     os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
 
