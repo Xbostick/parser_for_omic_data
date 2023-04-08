@@ -246,20 +246,27 @@ def create_feature(
 
 def add_user_bed_markers(
         que,
-        df,
+        filename,
         bed_file_path,
     ):
     """ Merging sorted df with user`s .bed file as two additional cols
         Saving onli rows with several chr.
         Creating new 'intersect' column with booleans.
         Returning df with only intersected"""
+    df = dd.read_csv(
+        FILE_PATH + "filtred_" + filename + ".csv", 
+        header=None, 
+        sep=',',
+        names = ['chr', 'begin', 'end', 'id', 'score'],
+        blocksize = '50mb'
+        )
+    
     process_list = []
     bed_csv = dd.read_csv(
                             bed_file_path,
                             sep = '\t',
                             names = ['chr', 'begin_b', 'end_b']
                         )
-    df = dd.from_pandas(df, npartitions = 10)
     df = df.merge(bed_csv, on='chr', how='inner')
 
     for part in range(df.npartitions):
@@ -293,13 +300,7 @@ def create_features_files(
         sep=',',
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
-    
-    if bed_file_path:
-        if args.verbose:
-            print(f"Added .bed file on path {bed_file_path}")
-        exp_df = add_user_bed_markers(que,exp_df,bed_file_path)
 
-    print(exp_df)
     Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
 
@@ -385,6 +386,12 @@ if __name__ == '__main__':
     # create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
 
     # que.shutdown()
+
+    if args.bed:
+        add_user_bed_markers(que,hyperparametrs[args.assembly],args.bed)
+        if args.verbose:
+            print(f"Added .bed file on path {args.bed}")
+        
 
     if args.verbose:
         print('Feature creation started')
