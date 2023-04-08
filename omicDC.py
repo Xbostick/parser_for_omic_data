@@ -151,30 +151,11 @@ def add_sorted_bed_2_file(
             bed_file_path
         ):
     """ Function to add lines to .csv file from part of sorted .bed files"""
-    print("its is coming")
     part = df.partitions[num]
 
     part = part.loc[part['id'].isin(matching_experiments)]
 
-    # (н)
-    # сливаем два дф в один
-    # сохраняются только те строки, где chr одинаковые (остальные значения пока не важны)
-    # значения бед датасета дописываются двумя колонками справа (begin_b и end_b)
-    #
-    # создаем колонку intersects и ставим в ней True, если отрезки пересекаются
-    #
-    # оставляем только ту часть df, у которой колонка True
-    # берем в итог только нужные нам колонки
-    if bed_file_path:
-        part = part.merge(dd.read_csv(
-                        bed_file_path,
-                        sep = '\t',
-                        names = ['chr', 'begin_b', 'end_b'],
-                    ),
-                    on='chr')
-        part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
-        part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
-
+   
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
@@ -216,6 +197,24 @@ def create_sorted_bed_file(
     if bed_file_path:
         if args.verbose:
             print(f"Added .bed file on path {bed_file_path}")
+         # (н)
+        # сливаем два дф в один
+        # сохраняются только те строки, где chr одинаковые (остальные значения пока не важны)
+        # значения бед датасета дописываются двумя колонками справа (begin_b и end_b)
+        #
+        # создаем колонку intersects и ставим в ней True, если отрезки пересекаются
+        #
+        # оставляем только ту часть df, у которой колонка True
+        # берем в итог только нужные нам колонки
+        df = df.merge(dd.read_csv(
+                            bed_file_path,
+                            sep = '\t',
+                            names = ['chr', 'begin_b', 'end_b'],
+                        ),
+                        on='chr')
+        df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+        df = df.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+
 
     for part in range(df.npartitions):
         process_list.append(que.submit(
