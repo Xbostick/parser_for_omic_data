@@ -175,7 +175,7 @@ def add_user_bed_markers(
                             sep = '\t',
                             names = ['chr', 'begin_b', 'end_b']
                         )
-    df.set_index()
+    df.set_index('chr')
 
     df_m = df.merge(bed_csv, on = ['chr'])
     print(df.head())
