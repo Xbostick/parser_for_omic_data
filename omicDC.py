@@ -253,7 +253,6 @@ def create_feature(
     # chroms - list with chroms of the organism
     chroms = list(sizes.keys())
     print(chroms)
-    exit()
     # data - dict with values of exp for each cromosome
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
     
