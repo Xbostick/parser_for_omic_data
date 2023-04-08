@@ -166,15 +166,15 @@ def add_sorted_bed_2_file(
     # оставляем только ту часть df, у которой колонка True
     # берем в итог только нужные нам колонки
     if bed_file_path:
-        bed_file_df = dd.read_csv(
+        part = part.merge(dd.read_csv(
                         bed_file_path,
                         sep = '\t',
                         names = ['chr', 'begin_b', 'end_b'],
-                    )
-        part = part.merge(bed_file_df, on='chr')
+                    ),
+                    on='chr')
         part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
         part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
-        
+
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
