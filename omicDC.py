@@ -178,7 +178,7 @@ def add_user_bed_markers(
     df.set_index('chr')
 
     df_m = df.merge(bed_csv, on = ['chr'])
-    print(df_m)
+    print(df_m.head())
     exit()
     for part in range(df.npartitions):
         process_list.append(que.submit(
