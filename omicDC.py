@@ -149,14 +149,10 @@ def add_sorted_bed_2_file(
             df,
             num,
             matching_experiments,
-            bed_file_path
         ):
     """ Function to add lines to .csv file from part of sorted .bed files"""
     part = df.partitions[num]
-
     part = part.loc[part['id'].isin(matching_experiments)]
-
-   
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
@@ -169,6 +165,24 @@ def im_not_alone(filename):
         if f.find("filtred_") != -1:
             is_multiuser = 1
     return is_multiuser
+
+def add_user_bed_markers(
+        df,
+        bed_file_path,
+    ):
+    """ Merging sorted df with user`s .bed file as two additional cols
+        Saving onli rows with several chr.
+        Creating new 'intersect' column with booleans.
+        Returning df with only intersected"""
+    bed_csv = pd.read_csv(
+                            bed_file_path,
+                            sep = '\t',
+                            names = ['chr', 'begin_b', 'end_b'],
+                        ),
+    df = df.merge(bed_csv, on='chr')
+    df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+    df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+    return df
 
 
 def create_sorted_bed_file(
@@ -195,38 +209,13 @@ def create_sorted_bed_file(
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
     os.chmod(path_2_sorted_file, 33279)
 
-    if bed_file_path:
-        if args.verbose:
-            print(f"Added .bed file on path {bed_file_path}")
-         # (н)
-        # сливаем два дф в один
-        # сохраняются только те строки, где chr одинаковые (остальные значения пока не важны)
-        # значения бед датасета дописываются двумя колонками справа (begin_b и end_b)
-        #
-        # создаем колонку intersects и ставим в ней True, если отрезки пересекаются
-        #
-        # оставляем только ту часть df, у которой колонка True
-        # берем в итог только нужные нам колонки
-        df = df.merge(dd.read_csv(
-                            bed_file_path,
-                            sep = '\t',
-                            names = ['chr', 'begin_b', 'end_b'],
-                        ),
-                        on='chr')
-        df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
-        df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
-        print("try compute")
-        df.compute()
-
-
     for part in range(df.npartitions):
         process_list.append(que.submit(
                                 add_sorted_bed_2_file,
                                 path_2_sorted_file,
                                 df,
                                 part,
-                                matching_experiments,
-                                bed_file_path
+                                matching_experiments
                                 )) 
     #TODO progress bar
     if args.verbose: 
@@ -237,7 +226,6 @@ def create_sorted_bed_file(
     
     a = [process.result() for process in process_list]
     progress(a, notebook = False)
-    
 
 
 def create_feature(
@@ -245,7 +233,8 @@ def create_feature(
         exps,
         sizes,
         filename,
-        path
+        path,
+        bed_file_path
     ):
     """Creating features"""
 
@@ -257,6 +246,10 @@ def create_feature(
     
     # exp_df - df with selected rows from chip-atlas bed file
     exp_df = pd.read_csv(FILE_PATH + "filtred_" + filename + ".csv", header=None, sep=',')
+    if bed_file_path:
+        if args.verbose:
+            print(f"Added .bed file on path {bed_file_path}")
+        exp_df = add_user_bed_markers(exp_df,bed_file_path)
     exp_df = exp_df[exp_df[3].isin(exps)]
     exp_df = exp_df[exp_df[0].isin(chroms)]
     
