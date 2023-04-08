@@ -273,6 +273,7 @@ def create_feature(
 
 
 def create_features_files(
+    que,
 	match_exp_df,
 	gen_assembly,
 	filename, 
@@ -293,7 +294,7 @@ def create_features_files(
     if bed_file_path:
         if args.verbose:
             print(f"Added .bed file on path {bed_file_path}")
-        exp_df = add_user_bed_markers(exp_df,bed_file_path)
+        exp_df = add_user_bed_markers(que,exp_df,bed_file_path)
     
     Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
