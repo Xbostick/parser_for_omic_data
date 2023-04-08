@@ -146,7 +146,6 @@ def make_intersect(df,num,filename):
     part = df.partitions[num]
     part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
     part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
-    #part.to_csv(filename, index=False, header=False, mode='a')
     return part
 
 
@@ -187,10 +186,10 @@ def add_user_bed_markers(
                                 path_2_sorted_file_with_user_bed
                                 )) 
     print(type(process_list[1]))
-    exit()
-    a = [process.result() for process in process_list]
 
-    return df.compute()
+    a = [Client.persist(process) for process in process_list]
+
+    return a
 
 
 def add_sorted_bed_2_file( 
