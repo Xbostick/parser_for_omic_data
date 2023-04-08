@@ -169,6 +169,7 @@ def add_user_bed_markers(
         blocksize = '50mb'
         )
     print(df.head())
+    exit()
     process_list = []
     bed_csv = dd.read_csv(
                             bed_file_path,
