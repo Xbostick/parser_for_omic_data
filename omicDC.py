@@ -146,8 +146,11 @@ def check_intersection(row1, row2):
 def make_intersect(df,num,filename):
     part = df.partitions[num]
     part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+    print(2)
     part = part.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+    print(3)
     part.to_csv(filename, index=False, header=False, mode='a')
+    print(4)
     return num
 
 
