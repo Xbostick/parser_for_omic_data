@@ -213,7 +213,7 @@ def create_sorted_bed_file(
                         ),
                         on='chr')
         df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
-        df = df.loc[part['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+        df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
 
 
     for part in range(df.npartitions):
