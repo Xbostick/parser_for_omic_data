@@ -168,7 +168,7 @@ def add_user_bed_markers(
         names = ['chr', 'begin', 'end', 'id', 'score'],
         blocksize = '5mb'
         )
-    print(df_m.npartitions)
+    print(df.npartitions)
     process_list = []
     bed_csv = dd.read_csv(
                             bed_file_path,
