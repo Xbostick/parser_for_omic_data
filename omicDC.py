@@ -191,7 +191,7 @@ def add_user_bed_markers(
     
     a = [process.result() for process in process_list]
 
-    return df.compute()
+    return df_m.compute()
 
 
 def add_sorted_bed_2_file( 
@@ -299,7 +299,7 @@ def create_features_files(
         )
 
     Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
-                   for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
+                   for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen']))
 
 
 def parse_private():
