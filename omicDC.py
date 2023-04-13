@@ -147,8 +147,7 @@ def add_sorted_bed_2_file(
             matching_experiments
         ):
     """ Function to add lines to .csv file from part of sorted .bed files"""
-    df = df.loc[part['id'].isin(matching_experiments)]
-    return df
+    return df.loc[part['id'].isin(matching_experiments)]
 
 
 def im_not_alone(filename):
@@ -224,7 +223,8 @@ def create_sorted_bed_file(
 
         print(f"{bcolors.OKCYAN}Progress bar is not working yet. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
     
-    df_filtered = df.map_partitions(add_sorted_bed_2_file, matching_experiments)
+    df = df.map_partitions(add_sorted_bed_2_file, matching_experiments)
+    df.to_csv(path_2_sorted_file, index=False, single_file=True)
 
 
 def create_feature(
