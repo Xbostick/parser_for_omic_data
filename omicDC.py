@@ -216,7 +216,7 @@ def create_sorted_bed_file(
                 FILE_PATH + filename,
                 sep = "\t", 
                 names = ['chr', 'begin', 'end', 'id', 'score'],
-                blocksize = '50mb'
+                blocksize = '100mb'
                 )
 
     if args.verbose: 
