@@ -253,6 +253,8 @@ def create_feature(
     ):
     """Creating features"""
 
+    print(exps)
+
     # chroms - list with chroms of the organism
     chroms = list(sizes.keys())
     
