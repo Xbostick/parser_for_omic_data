@@ -55,7 +55,7 @@ cmd_line.add_argument(
 # (н) поменял букву ключа
 cmd_line.add_argument(
     '--antigen_class',
-    '-n',
+    '-b',
     type=str,
     default=None,
     help='Antigen class'
@@ -101,15 +101,6 @@ cmd_line.add_argument(
     help='verbose operation'
 )
 
-# бед файл без заголовка в первой строке и разделитель \t
-cmd_line.add_argument(
-    '--bed',
-    '-b',
-    type=str,
-    default=None,
-    help='Bed file'
-)
-
 def create_matching_expirement_df(
             que, 
             filename, 
@@ -142,7 +133,6 @@ def check_intersection(row1, row2):
     #   and (abs(row1['end'] - row2['end_b']) <= 10) 
        
 
-
 def add_sorted_bed_2_file( 
             filename,
             df,
@@ -156,6 +146,7 @@ def add_sorted_bed_2_file(
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
 
+
 def im_not_alone(filename):
     """Function to check if only one user making executions"""
     directory = os.listdir('./')
@@ -165,41 +156,13 @@ def im_not_alone(filename):
             is_multiuser = 1
     return is_multiuser
 
+
 def make_intersect(df,num):
     part = df.partitions[num]
     df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
     df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
     df = df.compute()
     return num
-
-def add_user_bed_markers(
-        que,
-        df,
-        bed_file_path,
-    ):
-    """ Merging sorted df with user`s .bed file as two additional cols
-        Saving onli rows with several chr.
-        Creating new 'intersect' column with booleans.
-        Returning df with only intersected"""
-    process_list = []
-    bed_csv = dd.read_csv(
-                            bed_file_path,
-                            sep = '\t',
-                            names = ['chr', 'begin_b', 'end_b']
-                        )
-    df = dd.from_pandas(df)
-    df = df.merge(bed_csv, on='chr', how='inner')
-
-    for part in range(df.npartitions):
-        process_list.append(que.submit(
-                                make_intersect,
-                                df,
-                                part
-                                )) 
-    
-    a = [process.result() for process in process_list]
-
-    return df.compute()
 
 
 def create_sorted_bed_file(
@@ -259,8 +222,8 @@ def create_feature(
     # data - dict with values of exp for each cromosome
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
     
-    exp_df = exp_df[exp_df[3].isin(exps)]
-    exp_df = exp_df[exp_df[0].isin(chroms)]
+    exp_df = exp_df[exp_df['id'].isin(exps)]
+    exp_df = exp_df[exp_df['chr'].isin(chroms)]
     
     for line in exp_df.values:
         chrm, begin, end, ee, value = line
@@ -274,12 +237,10 @@ def create_feature(
 
 
 def create_features_files(
-    que,
 	match_exp_df,
 	gen_assembly,
 	filename, 
-    path,
-    bed_file_path
+    path
     ):
     """Create features file"""
     # sizes - dict with cromosome as key and it's len as value
@@ -292,13 +253,9 @@ def create_features_files(
         sep=',', 
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
-    if bed_file_path:
-        if args.verbose:
-            print(f"Added .bed file on path {bed_file_path}")
-        exp_df = add_user_bed_markers(que,exp_df,bed_file_path)
     
     Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
-                   for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
+                   for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen']))
 
 
 def parse_private():
@@ -327,6 +284,7 @@ def logging(options):
     f.write(os.getlogin()+ '\n')
     for key,value in options.items():
             f.write(str(key) + ':' +  str(value) + '\n')
+    os.chmod(cwd + "/log.txt", 33279)
 
 
 if __name__ == '__main__':
@@ -367,7 +325,7 @@ if __name__ == '__main__':
         if options[key]:
             options[key] = options[key].replace('_', ' ')
 
-    logging(options)
+    #logging(options)
     
     if args.verbose:
         print("Succes parse arguments!")
@@ -385,7 +343,7 @@ if __name__ == '__main__':
 
     if args.verbose:
         print('Feature creation started')
-    create_features_files(que, match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path, args.bed)
+    create_features_files(match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path)
     print('Feature creation fineshed')
     os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
 
