@@ -224,7 +224,7 @@ def create_sorted_bed_file(
         print(f"{bcolors.OKCYAN}Progress bar is not working yet. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
     
     df = df.map_partitions(add_sorted_bed_2_file, matching_experiments)
-    df.to_csv(path_2_sorted_file, index=False, single_file=True)
+    df.to_csv(path_2_sorted_file, index=False, header=False, single_file=True)
 
 
 def create_feature(
