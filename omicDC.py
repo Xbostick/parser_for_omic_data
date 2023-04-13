@@ -147,7 +147,7 @@ def add_sorted_bed_2_file(
             matching_experiments
         ):
     """ Function to add lines to .csv file from part of sorted .bed files"""
-    return df.loc[part['id'].isin(matching_experiments)]
+    return df.loc[df['id'].isin(matching_experiments)]
 
 
 def im_not_alone(filename):
