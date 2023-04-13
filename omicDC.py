@@ -368,7 +368,7 @@ if __name__ == '__main__':
         if options[key]:
             options[key] = options[key].replace('_', ' ')
 
-    logging(options)
+    #logging(options)
     
     if args.verbose:
         print("Succes parse arguments!")
