@@ -256,7 +256,7 @@ def create_feature(
     """Creating features"""
 
     print('i am here')
-    print(exp_df[3])
+    print(exp_df['id'])
     print('i am not here')
 
     # chroms - list with chroms of the organism
@@ -265,8 +265,8 @@ def create_feature(
     # data - dict with values of exp for each cromosome
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
     
-    exp_df = exp_df[exp_df[3].isin(exps)]
-    exp_df = exp_df[exp_df[0].isin(chroms)]
+    exp_df = exp_df[exp_df['id'].isin(exps)]
+    exp_df = exp_df[exp_df['chr'].isin(chroms)]
     
     for line in exp_df.values:
         chrm, begin, end, ee, value = line
