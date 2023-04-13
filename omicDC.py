@@ -298,7 +298,7 @@ def create_features_files(
         exp_df = add_user_bed_markers(que,exp_df,bed_file_path)
     
     Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
-                   for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
+                   for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen']))
 
 
 def parse_private():
