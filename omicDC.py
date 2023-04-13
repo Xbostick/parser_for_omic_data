@@ -142,7 +142,6 @@ def check_intersection(row1, row2):
     #   and (abs(row1['end'] - row2['end_b']) <= 10) 
        
 
-
 def add_sorted_bed_2_file( 
             filename,
             df,
@@ -253,7 +252,7 @@ def create_feature(
     ):
     """Creating features"""
 
-    print(exps)
+    print(exp_df)
 
     # chroms - list with chroms of the organism
     chroms = list(sizes.keys())
