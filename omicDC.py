@@ -8,7 +8,6 @@ import dask
 from dask.distributed import Client
 from dask.diagnostics import ProgressBar
 from dask.distributed import progress
-import gc
 
 import multiprocessing
 import os
@@ -143,70 +142,64 @@ def check_intersection(row1, row2):
     #   and (abs(row1['end'] - row2['end_b']) <= 10) 
        
 
-def make_intersect(df,num,filename):
+
+def add_sorted_bed_2_file( 
+            filename,
+            df,
+            num,
+            matching_experiments,
+        ):
+    """ Function to add lines to .csv file from part of sorted .bed files"""
     part = df.partitions[num]
-    part['intersects'] = part.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+    part = part.loc[part['id'].isin(matching_experiments)]
     part = part.compute()
-    part = part.loc[part['intersects'] == True]
-    gc.collect
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
 
+def im_not_alone(filename):
+    """Function to check if only one user making executions"""
+    directory = os.listdir('./')
+    is_multiuser = 0
+    for f in directory:
+        if f.find("filtred_") != -1:
+            is_multiuser = 1
+    return is_multiuser
+
+def make_intersect(df,num):
+    part = df.partitions[num]
+    df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
+    df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
+    df = df.compute()
+    return num
 
 def add_user_bed_markers(
         que,
-        filename,
+        df,
         bed_file_path,
     ):
     """ Merging sorted df with user`s .bed file as two additional cols
         Saving onli rows with several chr.
         Creating new 'intersect' column with booleans.
         Returning df with only intersected"""
-    path_2_sorted_file_with_user_bed = FILE_PATH + "filtred_and_bed" + filename + ".csv"
-
-    df = dd.read_csv(
-        FILE_PATH + "filtred_" + filename + ".csv", 
-        header=None, 
-        sep=',',
-        names = ['chr', 'begin', 'end', 'id', 'score'],
-        blocksize = '10mb'
-        )
-    
     process_list = []
     bed_csv = dd.read_csv(
                             bed_file_path,
                             sep = '\t',
-                            names = ['chr', 'begin_b', 'end_b'],
-                            blocksize = '10mb'
+                            names = ['chr', 'begin_b', 'end_b']
                         )
-    df.set_index('chr')
-    df_m = df.merge(bed_csv, on = ['chr'])
-    print(df_m.npartitions)
-    for part in range(df_m.npartitions):
+    df = dd.from_pandas(df)
+    df = df.merge(bed_csv, on='chr', how='inner')
+
+    for part in range(df.npartitions):
         process_list.append(que.submit(
                                 make_intersect,
-                                df_m,
-                                part,
-                                path_2_sorted_file_with_user_bed
+                                df,
+                                part
                                 )) 
     
     a = [process.result() for process in process_list]
 
-
-def add_sorted_bed_2_file( 
-            df,
-            matching_experiments,
-        ):
-    """ Function to add lines to .csv file from part of sorted .bed files"""
-    """
-    part = df.partitions[num]
-    part = part.loc[part['id'].isin(matching_experiments)]
-    part = part.compute()
-    part.to_csv(filename, index=False, header=False, mode='a')
-    return num
-    """
-    df.loc[df['id'].isin(matching_experiments)]
-    return df
+    return df.compute()
 
 
 def create_sorted_bed_file(
@@ -226,13 +219,9 @@ def create_sorted_bed_file(
                 FILE_PATH + filename,
                 sep = "\t", 
                 names = ['chr', 'begin', 'end', 'id', 'score'],
-                blocksize = '100mb'
+                blocksize = '50mb'
                 )
 
-    df_filtered = df.map_partitions(add_sorted_bed_2_file, matching_experiments)
-    df_filtered.to_csv(path_2_sorted_file, index=False, single_file=True)
-
-    """
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
     os.chmod(path_2_sorted_file, 33279)
 
@@ -253,7 +242,6 @@ def create_sorted_bed_file(
     
     a = [process.result() for process in process_list]
     progress(a, notebook = False)
-    """
 
 
 def create_feature(
@@ -301,12 +289,16 @@ def create_features_files(
     exp_df = pd.read_csv(
         FILE_PATH + "filtred_" + filename + ".csv", 
         header=None, 
-        sep=',',
+        sep=',', 
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
-
+    if bed_file_path:
+        if args.verbose:
+            print(f"Added .bed file on path {bed_file_path}")
+        exp_df = add_user_bed_markers(que,exp_df,bed_file_path)
+    
     Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
-                   for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen']))
+                   for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen class']))
 
 
 def parse_private():
@@ -335,6 +327,7 @@ def logging(options):
     f.write(os.getlogin()+ '\n')
     for key,value in options.items():
             f.write(str(key) + ':' +  str(value) + '\n')
+    os.chmod(cwd + "/log.txt", 33279)
 
 
 if __name__ == '__main__':
@@ -351,7 +344,6 @@ if __name__ == '__main__':
     PORT    =   hyperparametrs["PORT"]
     FILE_PATH = hyperparametrs["file_path"]
     
-    #check is user alone
     with warnings.catch_warnings(record=True) as caught_warnings:
         warnings.simplefilter("always")
         que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
@@ -376,7 +368,7 @@ if __name__ == '__main__':
         if options[key]:
             options[key] = options[key].replace('_', ' ')
 
-    logging(options)
+    #logging(options)
     
     if args.verbose:
         print("Succes parse arguments!")
@@ -385,22 +377,16 @@ if __name__ == '__main__':
 
     match_exp_df = create_matching_expirement_df(que, "experimentList.tab", options)
     
-    # if args.verbose:
-    #     print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
+    if args.verbose:
+        print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
+    
+    create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
 
-    # create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
-
-    # que.shutdown()
-    if args.bed:
-        add_user_bed_markers(que,hyperparametrs[args.assembly],args.bed)
-        if args.verbose:
-            print(f"Added .bed file on path {args.bed}")
-        
+    que.shutdown()
 
     if args.verbose:
         print('Feature creation started')
-
     create_features_files(que, match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path, args.bed)
     print('Feature creation fineshed')
-    #os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
+    os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
 
