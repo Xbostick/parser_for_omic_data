@@ -255,10 +255,6 @@ def create_feature(
     ):
     """Creating features"""
 
-    print('i am here')
-    print(exp_df['id'])
-    print('i am not here')
-
     # chroms - list with chroms of the organism
     chroms = list(sizes.keys())
     
