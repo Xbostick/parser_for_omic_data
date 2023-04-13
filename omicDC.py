@@ -327,6 +327,7 @@ def logging(options):
     f.write(os.getlogin()+ '\n')
     for key,value in options.items():
             f.write(str(key) + ':' +  str(value) + '\n')
+    os.chmod(cwd + "/log.txt", 33279)
 
 
 if __name__ == '__main__':
