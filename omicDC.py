@@ -193,19 +193,21 @@ def add_user_bed_markers(
     a = [process.result() for process in process_list]
 
 
-
 def add_sorted_bed_2_file( 
-            filename,
             df,
-            num,
             matching_experiments,
         ):
     """ Function to add lines to .csv file from part of sorted .bed files"""
+    """
     part = df.partitions[num]
     part = part.loc[part['id'].isin(matching_experiments)]
     part = part.compute()
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
+    """
+    df.loc[df['id'].isin(matching_experiments)]
+    return df
+
 
 def create_sorted_bed_file(
         que,
@@ -224,9 +226,13 @@ def create_sorted_bed_file(
                 FILE_PATH + filename,
                 sep = "\t", 
                 names = ['chr', 'begin', 'end', 'id', 'score'],
-                blocksize = '50mb'
+                blocksize = '100mb'
                 )
 
+    df_filtered = df.map_partitions(add_sorted_bed_2_file, matching_experiments)
+    df_filtered.to_csv(path_2_sorted_file, index=False, single_file=True)
+
+    """
     open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
     os.chmod(path_2_sorted_file, 33279)
 
@@ -247,6 +253,7 @@ def create_sorted_bed_file(
     
     a = [process.result() for process in process_list]
     progress(a, notebook = False)
+    """
 
 
 def create_feature(
