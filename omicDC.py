@@ -138,22 +138,17 @@ def create_matching_expirement_df(
 
 def check_intersection(row1, row2):
     return (row1['begin'] <= row2['end_b']) and (row2['begin_b'] <= row1['end'])
-        #return (abs(row1['begin'] - row2['begin_b']) <= 10) \
-    #   and (abs(row1['end'] - row2['end_b']) <= 10) 
+        # return (abs(row1['begin'] - row2['begin_b']) <= 10) \
+        # and (abs(row1['end'] - row2['end_b']) <= 10) 
        
 
 def add_sorted_bed_2_file( 
-            filename,
             df,
-            num,
-            matching_experiments,
+            matching_experiments
         ):
     """ Function to add lines to .csv file from part of sorted .bed files"""
-    part = df.partitions[num]
-    part = part.loc[part['id'].isin(matching_experiments)]
-    part = part.compute()
-    part.to_csv(filename, index=False, header=False, mode='a')
-    return num
+    df = df.loc[part['id'].isin(matching_experiments)]
+    return df
 
 
 def im_not_alone(filename):
@@ -224,26 +219,12 @@ def create_sorted_bed_file(
                 blocksize = '50mb'
                 )
 
-    open(path_2_sorted_file, mode = 'w').close()  # Creating empty .csv for editing
-    os.chmod(path_2_sorted_file, 33279)
-
-    for part in range(df.npartitions):
-        process_list.append(que.submit(
-                                add_sorted_bed_2_file,
-                                path_2_sorted_file,
-                                df,
-                                part,
-                                matching_experiments
-                                )) 
-    #TODO progress bar
     if args.verbose: 
         print(f"Your file creating. You can see progress here:\n http://{IP}:{PORT}/status\n")
 
         print(f"{bcolors.OKCYAN}Progress bar is not working yet. Whatever ¯\_(ツ)_/¯\nW8 a bit{bcolors.ENDC}")
     
-    
-    a = [process.result() for process in process_list]
-    progress(a, notebook = False)
+    df_filtered = df.map_partitions(add_sorted_bed_2_file, matching_experiments)
 
 
 def create_feature(
