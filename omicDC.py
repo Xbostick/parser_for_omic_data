@@ -142,7 +142,6 @@ def check_intersection(row1, row2):
     #   and (abs(row1['end'] - row2['end_b']) <= 10) 
        
 
-
 def add_sorted_bed_2_file( 
             filename,
             df,
@@ -156,6 +155,7 @@ def add_sorted_bed_2_file(
     part.to_csv(filename, index=False, header=False, mode='a')
     return num
 
+
 def im_not_alone(filename):
     """Function to check if only one user making executions"""
     directory = os.listdir('./')
@@ -165,12 +165,14 @@ def im_not_alone(filename):
             is_multiuser = 1
     return is_multiuser
 
+
 def make_intersect(df,num):
     part = df.partitions[num]
     df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
     df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
     df = df.compute()
     return num
+
 
 def add_user_bed_markers(
         que,
@@ -259,8 +261,8 @@ def create_feature(
     # data - dict with values of exp for each cromosome
     data = {chrm: np.zeros(sizes[chrm], dtype=np.uint16) for chrm in chroms}
     
-    exp_df = exp_df[exp_df[3].isin(exps)]
-    exp_df = exp_df[exp_df[0].isin(chroms)]
+    exp_df = exp_df[exp_df['id'].isin(exps)]
+    exp_df = exp_df[exp_df['chr'].isin(chroms)]
     
     for line in exp_df.values:
         chrm, begin, end, ee, value = line
