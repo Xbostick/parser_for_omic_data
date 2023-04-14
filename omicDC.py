@@ -111,7 +111,6 @@ cmd_line.add_argument(
 )
 
 def create_matching_expirement_df(
-            que, 
             filename, 
             options
         ):   
@@ -160,46 +159,7 @@ def im_not_alone(filename):
     return is_multiuser
 
 
-def make_intersect(df,num):
-    part = df.partitions[num]
-    df['intersects'] = df.apply(lambda row: check_intersection(row[:5], row[5:]), axis=1)
-    df = df.loc[df['intersects'] == True, ['chr', 'begin', 'end', 'id', 'score']]
-    df = df.compute()
-    return num
-
-
-def add_user_bed_markers(
-        que,
-        df,
-        bed_file_path,
-    ):
-    """ Merging sorted df with user`s .bed file as two additional cols
-        Saving onli rows with several chr.
-        Creating new 'intersect' column with booleans.
-        Returning df with only intersected"""
-    process_list = []
-    bed_csv = dd.read_csv(
-                            bed_file_path,
-                            sep = '\t',
-                            names = ['chr', 'begin_b', 'end_b']
-                        )
-    df = dd.from_pandas(df)
-    df = df.merge(bed_csv, on='chr', how='inner')
-
-    for part in range(df.npartitions):
-        process_list.append(que.submit(
-                                make_intersect,
-                                df,
-                                part
-                                )) 
-    
-    a = [process.result() for process in process_list]
-
-    return df.compute()
-
-
 def create_sorted_bed_file(
-        que,
         filename,
         match_exp_df
     ):
@@ -257,7 +217,6 @@ def create_feature(
 
 
 def create_features_files(
-    que,
 	match_exp_df,
 	gen_assembly,
 	filename, 
@@ -275,11 +234,7 @@ def create_features_files(
         sep=',', 
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
-    if bed_file_path:
-        if args.verbose:
-            print(f"Added .bed file on path {bed_file_path}")
-        exp_df = add_user_bed_markers(que,exp_df,bed_file_path)
-    
+        
     Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen']))
 
@@ -329,7 +284,6 @@ if __name__ == '__main__':
     
     with warnings.catch_warnings(record=True) as caught_warnings:
         warnings.simplefilter("always")
-        que = Client(n_workers=NCORES, threads_per_worker=NWORKERS)
         for warn in caught_warnings:
             if str(warn.message).find('Port 8787 is already in use') != -1:
                 print(f"{bcolors.OKCYAN}U r not alone. Sorry but u have to w8.\nChill a bit!{bcolors.ENDC}") 
@@ -358,18 +312,16 @@ if __name__ == '__main__':
         for key,value in options.items():
             print(key, ':', value)
 
-    match_exp_df = create_matching_expirement_df(que, "experimentList.tab", options)
+    match_exp_df = create_matching_expirement_df("experimentList.tab", options)
     
     if args.verbose:
         print(f"Was finded {len(match_exp_df)} results:\n " + str(match_exp_df.head()))
     
-    create_sorted_bed_file(que, hyperparametrs[args.assembly], match_exp_df)
-
-    que.shutdown()
+    create_sorted_bed_file(hyperparametrs[args.assembly], match_exp_df)
 
     if args.verbose:
         print('Feature creation started')
-    create_features_files(que, match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path, args.bed)
+    create_features_files(match_exp_df, args.assembly,hyperparametrs[args.assembly], args.path, args.bed)
     print('Feature creation fineshed')
     os.remove(FILE_PATH + "filtred_" + hyperparametrs[args.assembly] + ".csv")
 
