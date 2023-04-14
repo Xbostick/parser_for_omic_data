@@ -232,7 +232,6 @@ def create_feature(
     # data_sparse - convert data to sparse
     data_sparse = {chrm:SparseVector(data[chrm]) for chrm in chroms}
     
-    os.makedirs(os.path.expanduser(path) +"/omicDC_results", exist_ok=True)
     dump(data_sparse, os.path.expanduser(path)+"/omicDC_results/" + key[0].replace(' ', '_') + "_"+key[1] + ".pkl", 3)
 
 
@@ -254,6 +253,7 @@ def create_features_files(
         names = ['chr', 'begin', 'end', 'id', 'score']
         )
     
+    os.makedirs(os.path.expanduser(path) +"/omicDC_results", exist_ok=True)
     Parallel(n_jobs=int(NCORES+4))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen']))
 
