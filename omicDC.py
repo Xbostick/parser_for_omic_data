@@ -254,7 +254,7 @@ def create_features_files(
         )
     
     os.makedirs(os.path.expanduser(path) +"/omicDC_results", exist_ok=True)
-    Parallel(n_jobs=int(NCORES+4))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
+    Parallel(n_jobs=int(NCORES))(delayed(create_feature)(key, list(loc_df['id']), sizes, exp_df, path) 
                    for key, loc_df in match_exp_df.groupby(['Antigen class', 'Antigen']))
 
 
